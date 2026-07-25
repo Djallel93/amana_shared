@@ -21,7 +21,7 @@ use Illuminate\View\View;
  * clés admin-only, et le audit() de la modification.
  *
  * Ce qui NE l'est PAS et reste à chaque app : le regroupement/affichage
- * des réglages (ex. amana_web_planning groupe par offset_*/couleur_*/
+ * des réglages (ex. amana_web_planning groupe par offset_*couleur_*
  * calendar_* et affiche un registre de calendriers Google en plus) — ces
  * apps surchargent index() et fournissent leur propre vue, tout en
  * gardant update() hérité tel quel.
