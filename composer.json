@@ -1,0 +1,43 @@
+{
+    "name": "amana/shared",
+    "type": "library",
+    "description": "Fondation partagée AMANA : personnes, rôles, applications, réglages, audit et UI commune pour tous les apps AMANA (planning, familles, ...)",
+    "keywords": ["laravel", "amana", "shared"],
+    "license": "proprietary",
+    "require": {
+        "php": "^8.4",
+        "illuminate/support": "^13.0",
+        "illuminate/database": "^13.0",
+        "illuminate/auth": "^13.0",
+        "illuminate/console": "^13.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Amana\\Shared\\": "src/"
+        },
+        "files": [
+            "src/Helpers/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Amana\\Shared\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Amana\\Shared\\AmanaSharedServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

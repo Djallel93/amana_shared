@@ -1,0 +1,159 @@
+<?php
+// src/Models/Personne.php
+
+declare(strict_types=1);
+
+namespace Amana\Shared\Models;
+
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
+use Illuminate\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Foundation\Auth\Access\Authorizable;
+use Illuminate\Notifications\Notifiable;
+
+/**
+ * Modèle partagé — remplace User.php de Laravel pour toutes les apps AMANA.
+ *
+ * Vit dans amana_commun (ref_personnes). Chaque app se connecte à cette
+ * table via la connexion 'commun' (voir config/amana-shared.php).
+ *
+ * Les relations et méthodes métier propres à UNE seule app (absences,
+ * restrictions, créneaux, etc. — spécifiques à amana_web_planning) restent
+ * dans l'app elle-même. Si un jour plusieurs apps ont besoin d'étendre ce
+ * modèle, préférer un trait applicatif plutôt qu'un ajout ici.
+ */
+class Personne extends Model implements
+    AuthenticatableContract,
+    AuthorizableContract,
+    CanResetPasswordContract,
+    MustVerifyEmailContract
+{
+    use Authenticatable, Authorizable, CanResetPassword, MustVerifyEmail, Notifiable;
+
+    protected $table = 'ref_personnes';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'nom',
+        'prenom',
+        'email',
+        'password',
+        'telephone',
+        'date_debut_planning',
+        'statut',
+    ];
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'date_debut_planning' => 'date',
+        'email_verified_at' => 'datetime',
+        'derniere_maj' => 'datetime',
+    ];
+
+    public function getConnectionName(): ?string
+    {
+        return config('amana-shared.connection', 'commun');
+    }
+
+    // ── Relations ─────────────────────────────────────────────────────────
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'ref_personnes_roles', 'id_personne', 'id_role')
+            ->withPivot('date_attribution');
+    }
+
+    // ── Rôles ─────────────────────────────────────────────────────────────
+    //
+    // appCode par défaut = config('amana-shared.app_code') de l'app courante
+    // — chaque app ne teste ses propres rôles sans avoir à le répéter partout.
+
+    public function hasRole(string $roleCode, ?string $appCode = null): bool
+    {
+        $appCode ??= config('amana-shared.app_code');
+
+        return $this->roles()
+            ->whereHas('application', fn($q) => $q->where('code', $appCode))
+            ->where('ref_roles.code', $roleCode)
+            ->exists();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->hasRole('admin');
+    }
+
+    public function isGestionnaire(): bool
+    {
+        return $this->hasRole('gestionnaire');
+    }
+
+    public function isBenevole(): bool
+    {
+        return $this->hasRole('benevole') || $this->isAdmin() || $this->isGestionnaire();
+    }
+
+    public function isMembre(): bool
+    {
+        return $this->hasRole('membre') || $this->isAdmin() || $this->isGestionnaire();
+    }
+
+    /**
+     * Cascade identique à Amana\Shared\Http\Middleware\EnsureRole : admin
+     * couvre gestionnaire/benevole/membre, gestionnaire couvre benevole/
+     * membre, benevole couvre membre. Utilisé par le rendu de la sidebar
+     * (config('amana-shared.nav')) pour filtrer les liens sans dupliquer
+     * cette logique de cascade dans la vue.
+     */
+    public function hasAtLeastRole(string $role): bool
+    {
+        return match ($role) {
+            'admin' => $this->isAdmin(),
+            'gestionnaire' => $this->isAdmin() || $this->isGestionnaire(),
+            'benevole' => $this->isAdmin() || $this->isGestionnaire() || $this->isBenevole(),
+            'membre' => $this->isMembre(),
+            default => false,
+        };
+    }
+
+    // ── Scopes ────────────────────────────────────────────────────────────
+
+    public function scopeValide($query)
+    {
+        return $query->where('statut', 'Validé');
+    }
+
+    public function scopeEnAttente($query)
+    {
+        return $query->where('statut', 'En attente');
+    }
+
+    public function scopeAdminsDe($query, ?string $appCode = null)
+    {
+        $appCode ??= config('amana-shared.app_code');
+
+        return $query->whereHas('roles', function ($q) use ($appCode) {
+            $q->where('ref_roles.code', 'admin')
+                ->whereHas('application', fn($q2) => $q2->where('code', $appCode));
+        });
+    }
+
+    // ── Accesseurs ────────────────────────────────────────────────────────
+
+    public function getNomCompletAttribute(): string
+    {
+        return $this->prenom . ' ' . strtoupper($this->nom);
+    }
+
+    public function routeNotificationForMail(): string
+    {
+        return $this->email;
+    }
+}

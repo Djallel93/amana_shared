@@ -1,0 +1,24 @@
+# ── Dépendances ──────────────────────────────────────────────────────────
+# Package de type "library" : composer.lock n'est PAS commité (c'est aux
+# apps consommatrices de verrouiller leurs propres versions résolues,
+# pas à ce package de leur imposer les siennes — voir la doc Composer sur
+# les librairies vs. les projets applicatifs).
+/vendor
+composer.lock
+composer.phar
+
+# Jamais commité : contient des credentials (tokens GitHub, etc.)
+auth.json
+
+# ── Tests (orchestra/testbench, phpunit) ────────────────────────────────
+/.phpunit.cache
+.phpunit.result.cache
+/tests/tmp
+.env
+.env.testing
+
+# ── IDE / OS ─────────────────────────────────────────────────────────────
+.idea
+.vscode
+.DS_Store
+Thumbs.db
