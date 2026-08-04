@@ -32,11 +32,21 @@ class AmanaSharedServiceProvider extends ServiceProvider
         // manuellement, jamais comme effet de bord d'un déploiement routine.
         // ────────────────────────────────────────────────────────────────
 
-        if ($this->app->runningInConsole()) {
-            $this->commands([
-                MigrateSharedCommand::class,
-            ]);
-        }
+        // ────────────────────────────────────────────────────────────────
+        // Volontairement PAS de garde $this->app->runningInConsole() ici.
+        // Optimisation habituelle pour éviter d'enregistrer des commandes
+        // console inutilement pendant une requête web — mais runningInConsole()
+        // teste PHP_SAPI === 'cli'|'phpdbg', ce qui échoue silencieusement
+        // sur les hébergements (ex. IONOS mutualisé) où le binaire "php"
+        // utilisé en SSH est en réalité php-cgi (PHP_SAPI = 'cgi-fcgi') —
+        // la commande amana:migrate-shared devenait alors invisible à
+        // `php artisan list`, sans aucune erreur. $this->commands() est sans
+        // risque à appeler inconditionnellement : elle ne fait qu'enregistrer
+        // la classe auprès du noyau console, sans effet en dehors d'une
+        // véritable invocation console. Bug identifié le 03/08/2026.
+        $this->commands([
+            MigrateSharedCommand::class,
+        ]);
 
         // Vues Blade partagées (login, mot de passe oublié, shell de
         // paramètres/journal/statistiques) — sans risque à auto-charger,

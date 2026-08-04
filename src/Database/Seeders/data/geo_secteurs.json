@@ -1,1 +1,287 @@
-[{"id":1,"nom":"Nord","id_ville":1},{"id":2,"nom":"Est","id_ville":1},{"id":3,"nom":"Centre","id_ville":1},{"id":4,"nom":"Ouest","id_ville":1},{"id":5,"nom":"Sud","id_ville":1},{"id":6,"nom":"Nord","id_ville":2},{"id":7,"nom":"Centre","id_ville":2},{"id":8,"nom":"Ouest","id_ville":2},{"id":9,"nom":"Sud","id_ville":2},{"id":10,"nom":"Nord","id_ville":3},{"id":11,"nom":"Est","id_ville":3},{"id":12,"nom":"Ouest","id_ville":3},{"id":13,"nom":"Est","id_ville":4},{"id":14,"nom":"Ouest","id_ville":4},{"id":15,"nom":"Est","id_ville":5},{"id":16,"nom":"Ouest","id_ville":5},{"id":17,"nom":"Sud","id_ville":5},{"id":18,"nom":"Est","id_ville":6},{"id":19,"nom":"Centre","id_ville":6},{"id":20,"nom":"Ouest","id_ville":6},{"id":21,"nom":"Est","id_ville":7},{"id":22,"nom":"Centre","id_ville":7},{"id":23,"nom":"Ouest","id_ville":7},{"id":24,"nom":"Nord","id_ville":8},{"id":25,"nom":"Centre","id_ville":8},{"id":26,"nom":"Sud","id_ville":8},{"id":27,"nom":"Est","id_ville":9},{"id":28,"nom":"Ouest","id_ville":9},{"id":29,"nom":"Sud","id_ville":9},{"id":30,"nom":"Nord","id_ville":10},{"id":31,"nom":"Centre","id_ville":10},{"id":32,"nom":"Sud","id_ville":10},{"id":33,"nom":"Nord","id_ville":11},{"id":34,"nom":"Est","id_ville":11},{"id":35,"nom":"Ouest","id_ville":11},{"id":36,"nom":"Ouest","id_ville":12},{"id":37,"nom":"Nord","id_ville":12},{"id":38,"nom":"Sud","id_ville":12},{"id":39,"nom":"Nord","id_ville":13},{"id":40,"nom":"Ouest","id_ville":13},{"id":41,"nom":"Est","id_ville":13},{"id":42,"nom":"Sud","id_ville":13},{"id":43,"nom":"Nord","id_ville":14},{"id":44,"nom":"Centre","id_ville":14},{"id":45,"nom":"Sud","id_ville":14},{"id":46,"nom":"Nord","id_ville":15},{"id":47,"nom":"Est","id_ville":15},{"id":48,"nom":"Sud","id_ville":15},{"id":49,"nom":"Est","id_ville":16},{"id":50,"nom":"Ouest","id_ville":16},{"id":51,"nom":"Nord","id_ville":17},{"id":52,"nom":"Centre","id_ville":17},{"id":53,"nom":"Sud","id_ville":17},{"id":54,"nom":"Est","id_ville":18},{"id":55,"nom":"Centre","id_ville":18},{"id":56,"nom":"Ouest","id_ville":18},{"id":57,"nom":"Centre","id_ville":19}]
+[
+    {
+        "id": 1,
+        "nom": "Nord",
+        "id_ville": 1
+    },
+    {
+        "id": 2,
+        "nom": "Est",
+        "id_ville": 1
+    },
+    {
+        "id": 3,
+        "nom": "Centre",
+        "id_ville": 1
+    },
+    {
+        "id": 4,
+        "nom": "Ouest",
+        "id_ville": 1
+    },
+    {
+        "id": 5,
+        "nom": "Sud",
+        "id_ville": 1
+    },
+    {
+        "id": 6,
+        "nom": "Nord",
+        "id_ville": 2
+    },
+    {
+        "id": 7,
+        "nom": "Centre",
+        "id_ville": 2
+    },
+    {
+        "id": 8,
+        "nom": "Ouest",
+        "id_ville": 2
+    },
+    {
+        "id": 9,
+        "nom": "Sud",
+        "id_ville": 2
+    },
+    {
+        "id": 10,
+        "nom": "Nord",
+        "id_ville": 3
+    },
+    {
+        "id": 11,
+        "nom": "Est",
+        "id_ville": 3
+    },
+    {
+        "id": 12,
+        "nom": "Ouest",
+        "id_ville": 3
+    },
+    {
+        "id": 13,
+        "nom": "Est",
+        "id_ville": 4
+    },
+    {
+        "id": 14,
+        "nom": "Ouest",
+        "id_ville": 4
+    },
+    {
+        "id": 15,
+        "nom": "Est",
+        "id_ville": 5
+    },
+    {
+        "id": 16,
+        "nom": "Ouest",
+        "id_ville": 5
+    },
+    {
+        "id": 17,
+        "nom": "Sud",
+        "id_ville": 5
+    },
+    {
+        "id": 18,
+        "nom": "Est",
+        "id_ville": 6
+    },
+    {
+        "id": 19,
+        "nom": "Centre",
+        "id_ville": 6
+    },
+    {
+        "id": 20,
+        "nom": "Ouest",
+        "id_ville": 6
+    },
+    {
+        "id": 21,
+        "nom": "Est",
+        "id_ville": 7
+    },
+    {
+        "id": 22,
+        "nom": "Centre",
+        "id_ville": 7
+    },
+    {
+        "id": 23,
+        "nom": "Ouest",
+        "id_ville": 7
+    },
+    {
+        "id": 24,
+        "nom": "Nord",
+        "id_ville": 8
+    },
+    {
+        "id": 25,
+        "nom": "Centre",
+        "id_ville": 8
+    },
+    {
+        "id": 26,
+        "nom": "Sud",
+        "id_ville": 8
+    },
+    {
+        "id": 27,
+        "nom": "Est",
+        "id_ville": 9
+    },
+    {
+        "id": 28,
+        "nom": "Ouest",
+        "id_ville": 9
+    },
+    {
+        "id": 29,
+        "nom": "Sud",
+        "id_ville": 9
+    },
+    {
+        "id": 30,
+        "nom": "Nord",
+        "id_ville": 10
+    },
+    {
+        "id": 31,
+        "nom": "Centre",
+        "id_ville": 10
+    },
+    {
+        "id": 32,
+        "nom": "Sud",
+        "id_ville": 10
+    },
+    {
+        "id": 33,
+        "nom": "Nord",
+        "id_ville": 11
+    },
+    {
+        "id": 34,
+        "nom": "Est",
+        "id_ville": 11
+    },
+    {
+        "id": 35,
+        "nom": "Ouest",
+        "id_ville": 11
+    },
+    {
+        "id": 36,
+        "nom": "Ouest",
+        "id_ville": 12
+    },
+    {
+        "id": 37,
+        "nom": "Nord",
+        "id_ville": 12
+    },
+    {
+        "id": 38,
+        "nom": "Sud",
+        "id_ville": 12
+    },
+    {
+        "id": 39,
+        "nom": "Nord",
+        "id_ville": 13
+    },
+    {
+        "id": 40,
+        "nom": "Ouest",
+        "id_ville": 13
+    },
+    {
+        "id": 41,
+        "nom": "Est",
+        "id_ville": 13
+    },
+    {
+        "id": 42,
+        "nom": "Sud",
+        "id_ville": 13
+    },
+    {
+        "id": 43,
+        "nom": "Nord",
+        "id_ville": 14
+    },
+    {
+        "id": 44,
+        "nom": "Centre",
+        "id_ville": 14
+    },
+    {
+        "id": 45,
+        "nom": "Sud",
+        "id_ville": 14
+    },
+    {
+        "id": 46,
+        "nom": "Nord",
+        "id_ville": 15
+    },
+    {
+        "id": 47,
+        "nom": "Est",
+        "id_ville": 15
+    },
+    {
+        "id": 48,
+        "nom": "Sud",
+        "id_ville": 15
+    },
+    {
+        "id": 49,
+        "nom": "Est",
+        "id_ville": 16
+    },
+    {
+        "id": 50,
+        "nom": "Ouest",
+        "id_ville": 16
+    },
+    {
+        "id": 51,
+        "nom": "Nord",
+        "id_ville": 17
+    },
+    {
+        "id": 52,
+        "nom": "Centre",
+        "id_ville": 17
+    },
+    {
+        "id": 53,
+        "nom": "Sud",
+        "id_ville": 17
+    },
+    {
+        "id": 54,
+        "nom": "Est",
+        "id_ville": 18
+    },
+    {
+        "id": 55,
+        "nom": "Centre",
+        "id_ville": 18
+    },
+    {
+        "id": 56,
+        "nom": "Ouest",
+        "id_ville": 18
+    },
+    {
+        "id": 57,
+        "nom": "Centre",
+        "id_ville": 19
+    }
+]

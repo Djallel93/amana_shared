@@ -44,10 +44,12 @@ class MigrateSharedCommand extends Command
         $this->warn("Chemin des migrations : {$path}");
 
         if ($this->option('fresh')) {
-            if (! $this->option('force') && ! $this->confirm(
-                "⚠️  Ceci va SUPPRIMER puis recréer TOUTES les tables de la connexion '{$connection}' (amana_commun), y compris ref_personnes et audit_logs. Continuer ?",
-                false
-            )) {
+            if (
+                !$this->option('force') && !$this->confirm(
+                    "⚠️  Ceci va SUPPRIMER puis recréer TOUTES les tables de la connexion '{$connection}' (amana_commun), y compris ref_personnes et audit_logs. Continuer ?",
+                    false
+                )
+            ) {
                 $this->info('Annulé.');
                 return self::FAILURE;
             }

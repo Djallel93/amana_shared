@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Amana\Shared\Helpers\AuditHelper;
 
-if (! function_exists('audit')) {
+if (!function_exists('audit')) {
     /**
      * Enregistre une entrée dans le journal d'audit partagé (audit_logs).
      * Voir Amana\Shared\Helpers\AuditHelper pour le détail.

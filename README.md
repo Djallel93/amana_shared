@@ -7,6 +7,36 @@ UI commune (layout + sidebar).
 Package privé — voir `docs/architecture.md` du dépôt principal pour le
 contexte complet de cette architecture.
 
+## Pièges connus
+
+**Héritage de connexion sur les relations hasMany/hasOne.** Si un modèle
+applicatif (ex. `Restriction`, `Absence`, `Famille`) est le "many" d'une
+relation `hasMany`/`hasOne` définie sur un modèle partagé (`Personne`,
+`Quartier`...), et ne déclare **pas explicitement** sa propre connexion,
+Eloquent (`HasRelationships::newRelatedInstance()`) lui fait hériter la
+connexion du modèle PARENT dès qu'il est chargé via cette relation — même
+si ce modèle applicatif fonctionne parfaitement en dehors de toute
+relation. Concrètement : `Personne::restrictions()` chargerait
+silencieusement `plan_restrictions` depuis `amana_commun` au lieu de la
+base de l'app, provoquant une erreur "table doesn't exist" (la table existe
+bien, juste pas dans la base interrogée).
+
+**Tout modèle applicatif relié en hasMany/hasOne depuis un modèle partagé
+DOIT déclarer explicitement sa connexion** :
+
+```php
+public function getConnectionName(): ?string
+{
+    return config('database.default');
+}
+```
+
+Voir `Restriction`, `Absence`, `CreneauTache` dans `amana_web_planning`, et
+`Famille` dans `amana_web_familles` (via `Quartier::familles()`) pour des
+exemples concrets. Les modèles partagés eux-mêmes (`Role`, `Application`,
+`Setting`, `AuditLog`, `Ville`, `Secteur`) n'ont pas ce problème : ils
+déclarent déjà tous leur connexion explicitement.
+
 ## Installation dans une app consommatrice
 
 ### 1. Composer (dépôt privé)
@@ -15,15 +45,15 @@ Dans `composer.json` de l'app :
 
 ```json
 {
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/Djallel93/amana_shared.git"
-        }
-    ],
-    "require": {
-        "amana/shared": "^1.0"
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/Djallel93/amana_shared.git"
     }
+  ],
+  "require": {
+    "amana/shared": "^1.0"
+  }
 }
 ```
 
@@ -242,11 +272,13 @@ plutôt que dupliqué pour chaque future app à dimension géographique.
   `Amana\Shared\Database\Seeders\{GeoSeeder,TestGeoSeeder}`, exécutables
   depuis N'IMPORTE QUELLE app consommatrice (ils ciblent `amana_commun`
   eux-mêmes, indépendamment de la connexion par défaut de l'app appelante) :
+
   ```bash
   php artisan db:seed --class="Amana\Shared\Database\Seeders\GeoSeeder"
   # ou, pour les tests (géographie synthétique minimale et déterministe) :
   php artisan db:seed --class="Amana\Shared\Database\Seeders\TestGeoSeeder"
   ```
+
 - **Cross-DB FK** : toute app qui référence `quartiers.id` depuis sa propre
   base (ex. `familles.id_quartier`) ne peut PAS poser de contrainte FK MySQL
   dessus (bases différentes) — colonne simple, relation Eloquent uniquement,

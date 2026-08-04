@@ -2,7 +2,11 @@
     "name": "amana/shared",
     "type": "library",
     "description": "Fondation partagée AMANA : personnes, rôles, applications, réglages, audit et UI commune pour tous les apps AMANA (planning, familles, ...)",
-    "keywords": ["laravel", "amana", "shared"],
+    "keywords": [
+        "laravel",
+        "amana",
+        "shared"
+    ],
     "license": "proprietary",
     "require": {
         "php": "^8.4",

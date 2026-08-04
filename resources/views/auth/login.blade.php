@@ -2,7 +2,7 @@
 {{--
     Vue de connexion commune à toutes les apps AMANA.
     Personnalisable sans dupliquer le fichier via config('amana-shared.branding') :
-      app_name, tagline, features ([emoji, libellé][]), signup_route_name, signup_label.
+        app_name, tagline, features ([emoji, libellé][]), signup_route_name, signup_label.
     Pour un habillage plus profond qu'un simple changement de config, publier
     cette vue (php artisan vendor:publish --tag=amana-shared-views) et l'éditer
     localement — l'app la trouvera alors avant celle du package.
