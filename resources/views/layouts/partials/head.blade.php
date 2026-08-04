@@ -11,6 +11,20 @@ docs/architecture.md, section "pourquoi pas de build Vite partagé").
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('amana-shared.branding.app_name'))</title>
 
+    {{--
+        Favicons / icônes PWA — fichiers réels publiés depuis amana/shared
+        (voir AmanaSharedServiceProvider::boot(), tag 'amana-shared-assets').
+        Identiques entre toutes les apps AMANA (vérifié octet pour octet le
+        04/08/2026) ; seul site.webmanifest reste propre à chaque app (son
+        contenu name/short_name diffère légitimement).
+    --}}
+    <link rel="icon" type="image/png" href="{{ asset('favicon-96x96.png') }}" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('site.webmanifest') }}">
+    <meta name="apple-mobile-web-app-title" content="{{ config('amana-shared.branding.tagline_short', config('amana-shared.branding.app_name')) }}">
+
     @hasSection('favicon')
         @yield('favicon')
     @endif

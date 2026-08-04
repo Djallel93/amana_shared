@@ -37,6 +37,43 @@ exemples concrets. Les modèles partagés eux-mêmes (`Role`, `Application`,
 `Setting`, `AuditLog`, `Ville`, `Secteur`) n'ont pas ce problème : ils
 déclarent déjà tous leur connexion explicitement.
 
+## Assets de marque (logo, favicons, icônes PWA)
+
+Le logo AMANA, les favicons et les icônes PWA (`amana-logo.png`,
+`favicon.ico`, `favicon.svg`, `favicon-96x96.png`, `apple-touch-icon.png`,
+`web-app-manifest-{192,512}x192.png`) sont identiques entre toutes les apps
+AMANA (vérifié octet pour octet entre planning et familles le 04/08/2026,
+avant leur centralisation ici) — voir `resources/images/` dans ce package.
+
+Contrairement à la config/aux vues, ces fichiers doivent être physiquement
+présents dans le `public/` de chaque app consommatrice : Laravel sert
+`public/` directement, il n'existe pas de mécanisme pour servir des
+fichiers statiques depuis `vendor/` sans route dédiée. Le shell partagé
+(`amana-shared::layouts.partials.head`) les référence déjà via
+`asset('favicon.ico')` etc. — chaque app doit simplement les avoir
+physiquement à ces chemins, en les publiant une fois :
+
+```bash
+php artisan vendor:publish --tag=amana-shared-assets
+```
+
+**`site.webmanifest` n'est PAS publié par ce tag** — son contenu
+(`name`/`short_name`) diffère légitimement par app (ex. "AMANA Planning"
+vs "AMANA Familles"), il reste propre à chaque app et n'a pas sa place ici.
+
+### Mettre à jour le logo/les favicons pour toutes les apps
+
+1. Remplacer les fichiers dans `amana_shared/resources/images/`.
+2. Tagger une nouvelle version (`git tag v1.x.x && git push --tags`).
+3. Dans chaque app : `composer update amana/shared`, puis republier en
+   forçant l'écrasement des fichiers déjà présents :
+   ```bash
+   php artisan vendor:publish --tag=amana-shared-assets --force
+   ```
+4. Rebuild (`npm run build`) et redéployer normalement — ces fichiers ne
+   passent pas par Vite, mais un rebuild reste nécessaire pour que le
+   `rsync` du déploiement les inclue dans l'artefact livré.
+
 ## Installation dans une app consommatrice
 
 ### 1. Composer (dépôt privé)

@@ -62,5 +62,28 @@ class AmanaSharedServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views' => resource_path('views/vendor/amana-shared'),
         ], 'amana-shared-views');
+
+        // ────────────────────────────────────────────────────────────────
+        // Assets de marque (logo, favicons, icônes PWA) — identiques entre
+        // amana_web_planning et amana_web_familles (vérifié octet pour
+        // octet le 04/08/2026, avant cette centralisation). Contrairement à
+        // config/vues ci-dessus, ces fichiers doivent être PHYSIQUEMENT
+        // présents dans public/ de chaque app (Laravel sert public/
+        // directement, aucun mécanisme de service de fichiers depuis
+        // vendor/ sans route dédiée) — publiés une fois via :
+        //   php artisan vendor:publish --tag=amana-shared-assets
+        // À republier après toute mise à jour du logo/des favicons dans ce
+        // package (voir amana_shared/README.md, section "Assets de marque").
+        // site.webmanifest n'est PAS ici : son contenu (name/short_name)
+        // diffère légitimement par app, il reste propre à chaque app.
+        $this->publishes([
+            __DIR__ . '/../resources/images/amana-logo.png' => public_path('images/amana-logo.png'),
+            __DIR__ . '/../resources/images/favicon.ico' => public_path('favicon.ico'),
+            __DIR__ . '/../resources/images/favicon.svg' => public_path('favicon.svg'),
+            __DIR__ . '/../resources/images/favicon-96x96.png' => public_path('favicon-96x96.png'),
+            __DIR__ . '/../resources/images/apple-touch-icon.png' => public_path('apple-touch-icon.png'),
+            __DIR__ . '/../resources/images/web-app-manifest-192x192.png' => public_path('web-app-manifest-192x192.png'),
+            __DIR__ . '/../resources/images/web-app-manifest-512x512.png' => public_path('web-app-manifest-512x512.png'),
+        ], 'amana-shared-assets');
     }
 }
