@@ -64,6 +64,13 @@ return [
         // demande d'accès...). Laisser à null pour ne rien afficher.
         'signup_route_name' => null,
         'signup_label' => null,
+        // Utilisés par emails/partials/_footer.blade.php (voir plus bas) —
+        // ajoutés le 04/08/2026 lors de la centralisation des partials
+        // email. email_footer_text reprend la phrase de amana_web_planning
+        // à titre d'exemple ; CHAQUE app doit la personnaliser (celle de
+        // familles disait "suite à une action d'un administrateur...").
+        'email_footer_text' => 'Vous recevez cet email suite à la validation de votre candidature bénévole.',
+        'contact_email' => 'amana44.benevole@gmail.com',
     ],
 
     /*
@@ -100,4 +107,37 @@ return [
     |
     */
     'nav' => [],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Thème couleur des emails (resources/views/emails/partials/_head.blade.php)
+    |--------------------------------------------------------------------------
+    |
+    | Ajouté le 04/08/2026 : _head.blade.php (styles des emails de
+    | notification) était structurellement identique entre planning et
+    | familles, seules ces 12 valeurs différaient (bleu marine/sky vs
+    | ambre/terracotta) — vérifié octet pour octet avant centralisation.
+    | Valeurs par défaut ci-dessous = celles de amana_web_planning ; CHAQUE
+    | app doit republier ce fichier et fournir SA propre palette (voir
+    | amana_web_familles pour l'exemple ambre/terracotta).
+    |
+    | accent_rgb / accent_light_rgb : triplets "R, G, B" SANS le wrapper
+    | rgba() — composés inline dans le template via rgba({{ ... }}, 0.35)
+    | pour ne pas dupliquer une clé par valeur d'opacité utilisée.
+    |
+    */
+    'email_theme' => [
+        'header_bg' => '#0c1e2e',          // fond du header + de la features-card
+        'accent' => '#0369a1',              // couleur d'accent principale (boutons, liens, textes de marque)
+        'accent_dark' => '#0284c7',         // 2e couleur du dégradé "stripe"
+        'accent_light' => '#0ea5e9',        // 3e couleur du dégradé "stripe"
+        'accent_rgb' => '3, 105, 161',      // = accent, en triplet RGB pour rgba()
+        'accent_light_rgb' => '14, 165, 233', // = accent_light, en triplet RGB pour rgba()
+        'accent_light_text' => '#7dd3fc',   // texte clair sur fond sombre (bismillah, badge, features-label)
+        'accent_pale_text' => '#bae6fd',    // texte encore plus pâle sur fond sombre (corps des lignes de la features-card)
+        'accent_darker' => '#0c4a6e',       // texte foncé d'emphase sur fond clair (body-text strong, hadith arabe)
+        'hadith_french_text' => '#1e4a6e',  // texte de la traduction française du hadith (ton distinct de accent_darker)
+        'accent_pale_bg' => '#f0f6fb',      // fond pâle (carte hadith, footer)
+        'accent_pale_border' => '#c7dff0',  // bordure pâle (carte hadith, footer, footer-divider)
+    ],
 ];
