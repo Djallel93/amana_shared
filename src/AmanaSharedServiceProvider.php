@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Amana\Shared;
 
 use Amana\Shared\Console\Commands\MigrateSharedCommand;
+use Amana\Shared\Contracts\NavBadgeProvider;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AmanaSharedServiceProvider extends ServiceProvider
@@ -62,6 +64,21 @@ class AmanaSharedServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__ . '/../resources/views' => resource_path('views/vendor/amana-shared'),
         ], 'amana-shared-views');
+
+        // Badges de navigation (ex. nombre de candidatures en attente sur
+        // l'item "Candidatures") — voir Contracts\NavBadgeProvider pour le
+        // pourquoi (config('amana-shared.nav') est un tableau statique, mis
+        // en cache par config:cache, qui ne peut pas porter de logique
+        // dynamique). Résolu paresseusement à chaque rendu de la sidebar,
+        // uniquement si une app a lié une implémentation — sinon $navBadges
+        // reste un tableau vide et aucun badge ne s'affiche.
+        View::composer('amana-shared::layouts.partials.sidebar', function ($view): void {
+            $navBadges = $this->app->bound(NavBadgeProvider::class)
+                ? $this->app->make(NavBadgeProvider::class)->counts()
+                : [];
+
+            $view->with('navBadges', $navBadges);
+        });
 
         // ────────────────────────────────────────────────────────────────
         // Assets de marque (logo, favicons, icônes PWA) — identiques entre
