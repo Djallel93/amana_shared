@@ -67,22 +67,23 @@ surlignage actif (défaut: 'route')
         @auth
             @if(auth()->user()->isAdmin())
                 <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                    bg-rose-500/[0.14] text-rose-300 border border-rose-500/[0.22]">
+                                                            bg-rose-500/[0.14] text-rose-300 border border-rose-500/[0.22]">
                     🛡️ Administrateur
                 </div>
             @elseif(auth()->user()->isGestionnaire())
                 <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                    bg-amber-500/[0.14] text-amber-300 border border-amber-500/[0.22]">
+                                                            bg-amber-500/[0.14] text-amber-300 border border-amber-500/[0.22]">
                     ⚙️ Gestionnaire
                 </div>
             @elseif(method_exists(auth()->user(), 'isBenevole') && auth()->user()->isBenevole())
-                <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                    bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
+                <div
+                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
+                                                            bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
                     🤝 Bénévole
                 </div>
             @else
                 <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                    bg-sky-500/[0.14] text-sky-300 border border-sky-500/[0.22]">
+                                                            bg-sky-500/[0.14] text-sky-300 border border-sky-500/[0.22]">
                     👤 Membre
                 </div>
             @endif
@@ -99,15 +100,14 @@ surlignage actif (défaut: 'route')
                 @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
                 <a href="{{ route($item['route']) }}"
                     class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
-                                {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
+                                                        {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
                     onclick="closeSidebar()">
                     <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
                     <span class="flex-1">{{ $item['label'] }}</span>
                     @if($navBadge > 0)
                         <span
                             class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
-                            aria-label="{{ $navBadge }} en attente"
-                        >{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
+                            aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
                     @endif
                 </a>
             @endif
@@ -129,6 +129,7 @@ surlignage actif (défaut: 'route')
                 <div class="text-[11px] text-white/32 mt-px">
                     @if(auth()->user()->isAdmin()) Administrateur
                     @elseif(auth()->user()->isGestionnaire()) Gestionnaire
+                    @elseif(method_exists(auth()->user(), 'isBenevole') && auth()->user()->isBenevole()) Bénévole
                     @else Membre
                     @endif
                 </div>
