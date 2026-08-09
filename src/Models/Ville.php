@@ -24,6 +24,12 @@ class Ville extends Model
 {
     protected $fillable = ['nom', 'code_postal', 'departement', 'boundary'];
 
+    // boundary est un MULTIPOLYGON (WKB binaire) — jamais de l'UTF-8 valide.
+    // Sans ça, toJson()/response()->json() plante avec "Malformed UTF-8
+    // characters" dès qu'un appelant sérialise ce modèle (directement ou via
+    // une relation eager-loadée), sans lien évident avec la vraie cause.
+    protected $hidden = ['boundary'];
+
     public function getConnectionName(): ?string
     {
         return config('amana-shared.connection', 'commun');
