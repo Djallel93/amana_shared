@@ -26,7 +26,12 @@ toute nouvelle app.
 
         <div class="bg-surface border border-surface-border rounded-lg divide-y divide-surface-border">
             @forelse($settings as $cle => $data)
-                <div class="p-4 flex items-center justify-between gap-4">
+                {{-- Les jetons/valeurs chiffrées (type 'encrypted', ex. Jeton Google
+                     Contacts / People API) sont souvent des chaînes longues —
+                     illisibles dans le champ w-56 générique ci-dessous. On passe
+                     cette ligne en pleine largeur avec un textarea monospace
+                     plutôt qu'un <input> mono-ligne (demande du 11/08/2026). --}}
+                <div class="p-4 flex {{ $data['type'] === 'encrypted' ? 'flex-col' : 'items-center justify-between' }} gap-4">
                     <div class="min-w-0">
                         <label for="setting-{{ $cle }}"
                             class="block text-sm font-semibold text-ink">{{ $data['libelle'] }}</label>
@@ -34,13 +39,16 @@ toute nouvelle app.
                             <p class="text-xs text-ink-muted mt-0.5">{{ $data['description'] }}</p>
                         @endif
                     </div>
-                    <div class="flex-shrink-0 w-56">
+                    <div class="flex-shrink-0 {{ $data['type'] === 'encrypted' ? 'w-full' : 'w-56' }}">
                         @if($data['type'] === 'boolean')
                             <select id="setting-{{ $cle }}" name="settings[{{ $cle }}]"
                                 class="w-full px-3 py-2 border-[1.5px] border-ink-faint rounded-lg text-sm bg-surface-2 text-ink">
                                 <option value="1" @selected($data['valeur'])>Activé</option>
                                 <option value="0" @selected(!$data['valeur'])>Désactivé</option>
                             </select>
+                        @elseif($data['type'] === 'encrypted')
+                            <textarea id="setting-{{ $cle }}" name="settings[{{ $cle }}]" rows="3"
+                                class="w-full max-w-md px-3 py-2 border-[1.5px] border-ink-faint rounded-lg text-xs font-mono bg-surface-2 text-ink resize-y">{{ $data['valeur'] }}</textarea>
                         @else
                             <input type="text" id="setting-{{ $cle }}" name="settings[{{ $cle }}]" value="{{ $data['valeur'] }}"
                                 class="w-full px-3 py-2 border-[1.5px] border-ink-faint rounded-lg text-sm bg-surface-2 text-ink">
