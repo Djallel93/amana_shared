@@ -70,6 +70,18 @@ class Personne extends Model implements
             ->withPivot('date_attribution');
     }
 
+    /**
+     * Contrairement à Quartier/Famille (bases différentes, voir le
+     * docblock de Quartier), BenevoleProfil vit dans amana_commun comme
+     * Personne — la relation directe ne couple donc pas ce modèle partagé
+     * à une seule app consommatrice, plusieurs apps AMANA pouvant y lire
+     * un profil bénévole (familles aujourd'hui, amana_livraison demain).
+     */
+    public function benevoleProfil(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(BenevoleProfil::class, 'id_personne');
+    }
+
     // ── Rôles ─────────────────────────────────────────────────────────────
     //
     // appCode par défaut = config('amana-shared.app_code') de l'app courante
