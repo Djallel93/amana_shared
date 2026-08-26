@@ -25,7 +25,11 @@ return new class extends Migration {
     {
         Schema::create('benevole_secteurs', function (Blueprint $table) {
             $table->unsignedInteger('id_benevole_profil');
-            $table->unsignedInteger('id_secteur');
+            // secteurs.id est un $table->id() (BIGINT UNSIGNED), pas un
+            // increments() classique — unsignedBigInteger obligatoire ici,
+            // une unsignedInteger provoque une erreur MySQL 3780 (largeur
+            // de colonne incompatible avec la clé étrangère).
+            $table->unsignedBigInteger('id_secteur');
 
             $table->primary(['id_benevole_profil', 'id_secteur']);
 
