@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\DB;
  * create_ref_vehicules_table pour le raisonnement.
  *
  * IDs explicites (mêmes que la table `vehicule` de l'ancien projet
- * amana_livraison pour les 6 premiers, + 'Permis'/'Sans permis' ajoutés) —
- * préservés pour rester stables si benevole_profils.id_vehicule_type y
- * fait déjà référence au moment d'un reseed.
+ * amana_livraison pour les 6 premiers, + 'Non véhiculé'/'Sans permis'
+ * ajoutés — le premier a été rebaptisé le 26/08/2026, initialement
+ * "Permis", trop ambigu à côté de la question "avez-vous le permis ?"
+ * déjà posée à l'étape précédente du formulaire) — préservés pour rester
+ * stables si benevole_profils.id_vehicule_type y fait déjà référence au
+ * moment d'un reseed.
  *
  * Comme GeoSeeder : destructif sur cette table (delete avant réinsertion),
  * à lancer manuellement une seule fois — PAS appelé par
@@ -35,7 +38,7 @@ class VehiculeTypesSeeder extends Seeder
         ['id' => 4, 'type' => 'Monospace', 'capacite_kg' => 400, 'nombre_part_max' => 20],
         ['id' => 5, 'type' => 'Fourgon moyen', 'capacite_kg' => 700, 'nombre_part_max' => 30],
         ['id' => 6, 'type' => 'Grand fourgon', 'capacite_kg' => 1000, 'nombre_part_max' => 50],
-        ['id' => 7, 'type' => 'Permis', 'capacite_kg' => 0, 'nombre_part_max' => 0],
+        ['id' => 7, 'type' => 'Non véhiculé', 'capacite_kg' => 0, 'nombre_part_max' => 0],
         ['id' => 8, 'type' => 'Sans permis', 'capacite_kg' => 0, 'nombre_part_max' => 0],
     ];
 
