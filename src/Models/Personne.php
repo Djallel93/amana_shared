@@ -112,6 +112,19 @@ class Personne extends Model implements
         return $this->hasRole('benevole') || $this->isAdmin() || $this->isGestionnaire();
     }
 
+    /**
+     * Rôle latéral (voir Amana\Shared\Http\Middleware\EnsureRole) — gère
+     * des dossiers pour le compte d'une ou plusieurs organisations
+     * partenaires (amana_web_familles, ajout du 28/08/2026), pas un rang
+     * dans la hiérarchie admin/gestionnaire/benevole/membre. Volontairement
+     * PAS inclus dans isGestionnaire()/isBenevole()/isMembre() ci-dessus :
+     * un gestionnaire_externe n'hérite d'aucun accès interne.
+     */
+    public function isGestionnaireExterne(): bool
+    {
+        return $this->hasRole('gestionnaire_externe');
+    }
+
     public function isMembre(): bool
     {
         return $this->hasRole('membre') || $this->isAdmin() || $this->isGestionnaire();

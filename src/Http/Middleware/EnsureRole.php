@@ -28,6 +28,17 @@ use Symfony\Component\HttpFoundation\Response;
  *                  chaque app qui l'utilise)
  *   membre       → accès lecture + gestion de ses propres données
  *
+ *   gestionnaire_externe → ajouté le 28/08/2026 (amana_web_familles,
+ *                  organisations partenaires) — volontairement HORS de la
+ *                  cascade ci-dessus : ce n'est pas un rang entre deux
+ *                  rôles internes, mais un rôle latéral scopé à
+ *                  l'organisation de la personne (voir
+ *                  App\Models\Famille::scopeVisiblePar() côté
+ *                  amana_web_familles pour le filtrage par organisation).
+ *                  Seul admin y a accès en plus de gestionnaire_externe
+ *                  lui-même — pas gestionnaire/benevole/membre, qui n'ont
+ *                  aucune notion d'organisation.
+ *
  * Un admin a automatiquement accès aux routes gestionnaire/benevole/membre.
  * Un gestionnaire a automatiquement accès aux routes benevole/membre.
  * Un benevole a automatiquement accès aux routes membre.
@@ -37,6 +48,7 @@ use Symfony\Component\HttpFoundation\Response;
  *   Route::middleware('role:gestionnaire')
  *   Route::middleware('role:benevole')
  *   Route::middleware('role:membre')
+ *   Route::middleware('role:gestionnaire_externe')
  *
  * La redirection en cas de refus pointe vers config('amana-shared.home_route')
  * — chaque app définit la sienne, plutôt que le nom de route étant en dur
@@ -54,6 +66,10 @@ class EnsureRole
             'gestionnaire' => $personne->isAdmin() || $personne->isGestionnaire(),
             'benevole' => $personne->isAdmin() || $personne->isGestionnaire() || $personne->isBenevole(),
             'membre' => $personne->isMembre(),
+            // Pas de cascade depuis gestionnaire/benevole/membre (voir
+            // docblock de classe) — seul admin passe en plus de
+            // gestionnaire_externe lui-même.
+            'gestionnaire_externe' => $personne->isAdmin() || $personne->isGestionnaireExterne(),
             default => false,
         };
 
