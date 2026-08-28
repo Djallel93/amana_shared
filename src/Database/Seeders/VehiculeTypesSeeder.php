@@ -20,12 +20,20 @@ use Illuminate\Support\Facades\DB;
  * stables si benevole_profils.id_vehicule_type y fait déjà référence au
  * moment d'un reseed.
  *
- * Comme GeoSeeder : destructif sur cette table (delete avant réinsertion),
- * à lancer manuellement une seule fois — PAS appelé par
- * `amana:migrate-shared` (voir ce fichier). Après un reseed, les valeurs
- * capacite_kg/nombre_part_max redeviennent éditables au besoin via
- * l'écran Paramètres (VehiculeTypesController, amana_web_familles) sans
- * repasser par ce seeder.
+ * upsert() plutôt que delete()+insert() (corrigé le 28/08/2026) : la
+ * contrainte FK benevole_profils.id_vehicule_type est en ON DELETE
+ * RESTRICT (volontaire — voir create_benevole_profils_table), donc un
+ * DELETE sur cette table échoue dès qu'un seul bénévole existe déjà. Pas
+ * ce problème avec upsert() (INSERT ... ON DUPLICATE KEY UPDATE), qui ne
+ * supprime jamais de ligne — relançable à tout moment, y compris avec des
+ * bénévoles déjà en base. Contrepartie assumée : un reseed écrase les
+ * valeurs capacite_kg/nombre_part_max éventuellement déjà personnalisées
+ * via l'écran Paramètres (VehiculeTypesController, amana_web_familles) —
+ * comportement voulu pour un seeder (réétablir l'état de référence), pas
+ * un bug.
+ *
+ * PAS appelé par `amana:migrate-shared` (voir ce fichier) — à lancer
+ * manuellement.
  *
  * Lancement : php artisan db:seed --class="Amana\Shared\Database\Seeders\VehiculeTypesSeeder"
  */
@@ -46,7 +54,10 @@ class VehiculeTypesSeeder extends Seeder
     {
         $connection = DB::connection(config('amana-shared.connection', 'commun'));
 
-        $connection->table('ref_vehicules')->delete();
-        $connection->table('ref_vehicules')->insert(self::VEHICULES);
+        $connection->table('ref_vehicules')->upsert(
+            self::VEHICULES,
+            ['id'],
+            ['type', 'capacite_kg', 'nombre_part_max'],
+        );
     }
 }
