@@ -66,52 +66,107 @@ surlignage actif (défaut: 'route')
         {{-- Badge rôle --}}
         @auth
             @if(auth()->user()->isAdmin())
-                <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                                            bg-rose-500/[0.14] text-rose-300 border border-rose-500/[0.22]">
+                <div
+                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
+                                                                    bg-rose-500/[0.14] text-rose-300 border border-rose-500/[0.22]">
                     🛡️ Administrateur
                 </div>
             @elseif(auth()->user()->isGestionnaire())
-                <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                                            bg-amber-500/[0.14] text-amber-300 border border-amber-500/[0.22]">
+                <div
+                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
+                                                                    bg-amber-500/[0.14] text-amber-300 border border-amber-500/[0.22]">
                     ⚙️ Gestionnaire
                 </div>
             @elseif(method_exists(auth()->user(), 'isBenevole') && auth()->user()->isBenevole())
                 <div
                     class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                                            bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
+                                                                    bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
                     🤝 Bénévole
                 </div>
             @else
-                <div class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                                            bg-sky-500/[0.14] text-sky-300 border border-sky-500/[0.22]">
+                <div
+                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
+                                                                    bg-sky-500/[0.14] text-sky-300 border border-sky-500/[0.22]">
                     👤 Membre
                 </div>
             @endif
         @endauth
 
-        {{-- ── Navigation propre à l'app, depuis config('amana-shared.nav') ── --}}
-        @foreach(config('amana-shared.nav', []) as $item)
-            @if(isset($item['section']))
-                <p class="px-2.5 mb-1 mt-3 first:mt-0 text-[9.5px] font-bold tracking-[1.4px] uppercase text-white/20">
-                    {{ $item['section'] }}
-                </p>
-            @else
-                @continue(!empty($item['role']) && !auth()->user()?->hasAtLeastRole($item['role']))
-                @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
-                <a href="{{ route($item['route']) }}"
-                    class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
-                                                        {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
-                    onclick="closeSidebar()">
-                    <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
-                    <span class="flex-1">{{ $item['label'] }}</span>
-                    @if($navBadge > 0)
-                        <span
-                            class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
-                            aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
+        {{-- ── Navigation propre à l'app, depuis config('amana-shared.nav') ──
+        Regroupée par section pour permettre le repli indépendant de
+        chaque groupe (ajouté le 29/08/2026) — <details>/<summary>,
+                même pattern déjà utilisé pour les groupes de filtres (voir
+                familles/index.blade.php) plutôt qu'une dépendance JS
+                supplémentaire (Alpine n'est utilisé nulle part ailleurs dans
+                ces apps). `open` par défaut : pas de persistance demandée,
+                les sections repartent dépliées à chaque chargement de page —
+                contrairement au repli global de la sidebar sur mobile (voir
+                amana_shared_ui/MobileSidebar.vue, qui répond à un besoin
+                différent). --}}
+                @php
+                    $navSections = [];
+                    $sectionCourante = null;
+                    foreach (config('amana-shared.nav', []) as $item) {
+                        if (isset($item['section'])) {
+                            $sectionCourante = $item['section'];
+                            $navSections[$sectionCourante] ??= [];
+                        } elseif ($sectionCourante !== null) {
+                            $navSections[$sectionCourante][] = $item;
+                        } else {
+                            // Entrée sans section précédente (ne devrait pas arriver
+                            // avec la config actuelle) — regroupée à part pour ne
+                            // perdre aucun lien plutôt que de la faire disparaître.
+                            $navSections[''][] = $item;
+                        }
+                    }
+                @endphp
+                @foreach($navSections as $section => $items)
+                    @php
+                        $itemsVisibles = collect($items)->filter(fn($item) => empty($item['role']) || auth()->user()?->hasAtLeastRole($item['role']));
+                    @endphp
+                    @continue($itemsVisibles->isEmpty())
+                    @if($section === '')
+                        @foreach($itemsVisibles as $item)
+                            @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
+                            <a href="{{ route($item['route']) }}"
+                                class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
+                                                                        {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
+                                onclick="closeSidebar()">
+                                <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
+                                <span class="flex-1">{{ $item['label'] }}</span>
+                                @if($navBadge > 0)
+                                    <span
+                                        class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
+                                        aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
+                                @endif
+                            </a>
+                        @endforeach
+                    @else
+                        <details class="group mt-3 first:mt-0" open>
+                            <summary class="cursor-pointer list-none flex items-center justify-between px-2.5 mb-1 select-none">
+                                <span
+                                    class="text-[9.5px] font-bold tracking-[1.4px] uppercase text-white/20">{{ $section }}</span>
+                                <span
+                                    class="text-white/20 text-[9px] transition-transform duration-200 group-open:rotate-180">▾</span>
+                            </summary>
+                            @foreach($itemsVisibles as $item)
+                                @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
+                                <a href="{{ route($item['route']) }}"
+                                    class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
+                                                                            {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
+                                    onclick="closeSidebar()">
+                                    <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
+                                    <span class="flex-1">{{ $item['label'] }}</span>
+                                    @if($navBadge > 0)
+                                        <span
+                                            class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
+                                            aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
+                                    @endif
+                                </a>
+                            @endforeach
+                        </details>
                     @endif
-                </a>
-            @endif
-        @endforeach
+                @endforeach
 
     </div>
 
