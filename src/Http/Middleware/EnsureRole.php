@@ -17,16 +17,15 @@ use Symfony\Component\HttpFoundation\Response;
  * middleware 'auth' (EnsureAuthenticated) — Auth::check() est donc
  * garanti ici et n'est pas revérifié.
  *
- * Hiérarchie des rôles (fusionnée depuis amana_web_planning et
- * amana_web_familles le 21/07/2026 — familles avait introduit 'benevole') :
+ * Hiérarchie des rôles — standardisée le 30/08/2026 (voir note ci-dessous
+ * sur l'historique de ce fichier) :
  *
  *   admin        → accès complet (peut tout faire)
  *   gestionnaire → accès étendu (gestion métier), mais pas la gestion des
  *                  utilisateurs
- *   benevole      → accès intermédiaire, au-dessus de membre (défini par
- *                  amana_web_familles — sémantique précise laissée à
- *                  chaque app qui l'utilise)
  *   membre       → accès lecture + gestion de ses propres données
+ *   benevole      → rang le plus bas, sémantique précise (ex. restriction
+ *                  à certaines tâches) laissée à chaque app qui l'utilise
  *
  *   gestionnaire_externe → ajouté le 28/08/2026 (amana_web_familles,
  *                  organisations partenaires) — volontairement HORS de la
@@ -36,12 +35,26 @@ use Symfony\Component\HttpFoundation\Response;
  *                  App\Models\Famille::scopeVisiblePar() côté
  *                  amana_web_familles pour le filtrage par organisation).
  *                  Seul admin y a accès en plus de gestionnaire_externe
- *                  lui-même — pas gestionnaire/benevole/membre, qui n'ont
+ *                  lui-même — pas gestionnaire/membre/benevole, qui n'ont
  *                  aucune notion d'organisation.
  *
- * Un admin a automatiquement accès aux routes gestionnaire/benevole/membre.
- * Un gestionnaire a automatiquement accès aux routes benevole/membre.
- * Un benevole a automatiquement accès aux routes membre.
+ * Un admin a automatiquement accès aux routes gestionnaire/membre/benevole.
+ * Un gestionnaire a automatiquement accès aux routes membre/benevole.
+ * Un membre a automatiquement accès aux routes benevole.
+ *
+ * Historique : la fusion du 21/07/2026 (depuis amana_web_planning et
+ * amana_web_familles) avait documenté ici une cascade benevole → membre qui
+ * n'a jamais été implémentée (isBenevole()/isMembre() ne se référençaient
+ * pas l'une l'autre) et qui, de toute façon, contredisait la sémantique
+ * réelle de amana_web_planning (voir database/seeders/
+ * PlanningApplicationSeeder.php côté planning : benevole y est
+ * délibérément restreint, EN DESSOUS de membre — la cascade documentée
+ * aurait donné à tout bénévole planning un accès Bilan qu'il n'a jamais eu
+ * ni n'est censé avoir). Audit du 30/08/2026 : aucune route ni entrée de
+ * nav, dans amana_web_familles ou amana_web_planning, ne dépendait de la
+ * cascade non implémentée — ce correctif est donc sans impact sur le
+ * comportement actuel des deux apps, et se contente d'aligner code et
+ * documentation sur la hiérarchie standard ci-dessus.
  *
  * Usage dans routes/web.php (inchangé pour les apps existantes) :
  *   Route::middleware('role:admin')
@@ -64,9 +77,11 @@ class EnsureRole
         $autorise = match ($role) {
             'admin' => $personne->isAdmin(),
             'gestionnaire' => $personne->isAdmin() || $personne->isGestionnaire(),
-            'benevole' => $personne->isAdmin() || $personne->isGestionnaire() || $personne->isBenevole(),
             'membre' => $personne->isMembre(),
-            // Pas de cascade depuis gestionnaire/benevole/membre (voir
+            // isBenevole() cascade déjà depuis isMembre() (donc depuis
+            // gestionnaire/admin aussi) — voir Personne::isBenevole().
+            'benevole' => $personne->isBenevole(),
+            // Pas de cascade depuis gestionnaire/membre/benevole (voir
             // docblock de classe) — seul admin passe en plus de
             // gestionnaire_externe lui-même.
             'gestionnaire_externe' => $personne->isAdmin() || $personne->isGestionnaireExterne(),

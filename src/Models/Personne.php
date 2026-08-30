@@ -107,16 +107,23 @@ class Personne extends Model implements
         return $this->hasRole('gestionnaire');
     }
 
+    /**
+     * benevole est le rang le plus bas de la hiérarchie interne
+     * (admin ⊇ gestionnaire ⊇ membre ⊇ benevole) — cascade donc depuis
+     * isMembre(), qui cascade déjà depuis gestionnaire/admin. Voir le
+     * docblock de Amana\Shared\Http\Middleware\EnsureRole pour la
+     * hiérarchie complète et sa justification.
+     */
     public function isBenevole(): bool
     {
-        return $this->hasRole('benevole') || $this->isAdmin() || $this->isGestionnaire();
+        return $this->hasRole('benevole') || $this->isMembre();
     }
 
     /**
      * Rôle latéral (voir Amana\Shared\Http\Middleware\EnsureRole) — gère
      * des dossiers pour le compte d'une ou plusieurs organisations
      * partenaires (amana_web_familles, ajout du 28/08/2026), pas un rang
-     * dans la hiérarchie admin/gestionnaire/benevole/membre. Volontairement
+     * dans la hiérarchie admin/gestionnaire/membre/benevole. Volontairement
      * PAS inclus dans isGestionnaire()/isBenevole()/isMembre() ci-dessus :
      * un gestionnaire_externe n'hérite d'aucun accès interne.
      */
@@ -132,8 +139,8 @@ class Personne extends Model implements
 
     /**
      * Cascade identique à Amana\Shared\Http\Middleware\EnsureRole : admin
-     * couvre gestionnaire/benevole/membre, gestionnaire couvre benevole/
-     * membre, benevole couvre membre. Utilisé par le rendu de la sidebar
+     * couvre gestionnaire/membre/benevole, gestionnaire couvre membre/
+     * benevole, membre couvre benevole. Utilisé par le rendu de la sidebar
      * (config('amana-shared.nav')) pour filtrer les liens sans dupliquer
      * cette logique de cascade dans la vue.
      */
@@ -142,8 +149,8 @@ class Personne extends Model implements
         return match ($role) {
             'admin' => $this->isAdmin(),
             'gestionnaire' => $this->isAdmin() || $this->isGestionnaire(),
-            'benevole' => $this->isAdmin() || $this->isGestionnaire() || $this->isBenevole(),
             'membre' => $this->isMembre(),
+            'benevole' => $this->isBenevole(),
             default => false,
         };
     }
