@@ -39,9 +39,12 @@ surcharger les sections 'scripts-extra' ou publier cette vue.
     {{--
     Points de montage des composants Vue partagés (@amana/shared-ui) :
     MobileSidebar (collapse/mobile de #mainSidebar), Toast, ConfirmDialog
-    (remplace confirm() natif) et OfflineBanner. Chaque app les importe
-    et les monte dans son propre resources/js/app.ts — ces div ne sont
-    que les points d'ancrage, communs à toutes les pages du layout.
+    (remplace confirm() natif), OfflineBanner, UrgentAlertBar et
+    NotificationBell (ces deux derniers ajoutés le 03/09/2026 — centre de
+    notifications partagé, voir amana_shared/NotificationCenterService).
+    Chaque app les importe et les monte dans son propre
+    resources/js/app.ts — ces div ne sont que les points d'ancrage,
+    communs à toutes les pages du layout.
     --}}
     <div id="vue-mobile-sidebar"></div>
 
@@ -50,6 +53,8 @@ surcharger les sections 'scripts-extra' ou publier cette vue.
     <div id="vue-toast"></div>
     <div id="vue-confirm-dialog"></div>
     <div id="vue-offline-banner"></div>
+    <div id="vue-urgent-alert-bar"></div>
+    <div id="vue-notification-bell"></div>
 
 </body>
 

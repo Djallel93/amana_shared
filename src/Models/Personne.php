@@ -71,6 +71,23 @@ class Personne extends Model implements
     }
 
     /**
+     * Surcharge de Illuminate\Notifications\HasDatabaseNotifications
+     * (via le trait Notifiable ci-dessus) pour pointer vers
+     * Amana\Shared\Models\Notification plutôt que le
+     * Illuminate\Notifications\DatabaseNotification stock — seule façon
+     * de récupérer les colonnes severity/resolved_at ajoutées par
+     * create_notifications_table.php. Voir NotificationCenterService,
+     * seul point d'entrée applicatif attendu pour lire ces données (ce
+     * getter reste utilisable directement, notamment par le canal
+     * 'amana-database', qui appelle notifications()->create()).
+     */
+    public function notifications(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(\Amana\Shared\Models\Notification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
+    }
+
+    /**
      * Contrairement à Quartier/Famille (bases différentes, voir le
      * docblock de Quartier), BenevoleProfil vit dans amana_commun comme
      * Personne — la relation directe ne couple donc pas ce modèle partagé
@@ -173,6 +190,23 @@ class Personne extends Model implements
 
         return $query->whereHas('roles', function ($q) use ($appCode) {
             $q->where('ref_roles.code', 'admin')
+                ->whereHas('application', fn($q2) => $q2->where('code', $appCode));
+        });
+    }
+
+    /**
+     * Généralisation de scopeAdminsDe() à n'importe quel rôle — ajoutée le
+     * 03/09/2026 pour les notifications ciblant un rôle donné (ex:
+     * équipe_chargement, gestionnaire) plutôt qu'uniquement admin. Voir
+     * NotificationCenterService et, côté amana_web_familles,
+     * PackagingController::marquerPret()/RouteIncident (notifications).
+     */
+    public function scopeAvecRole($query, string $roleCode, ?string $appCode = null)
+    {
+        $appCode ??= config('amana-shared.app_code');
+
+        return $query->whereHas('roles', function ($q) use ($roleCode, $appCode) {
+            $q->where('ref_roles.code', $roleCode)
                 ->whereHas('application', fn($q2) => $q2->where('code', $appCode));
         });
     }

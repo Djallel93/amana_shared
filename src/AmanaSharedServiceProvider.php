@@ -7,6 +7,8 @@ namespace Amana\Shared;
 
 use Amana\Shared\Console\Commands\MigrateSharedCommand;
 use Amana\Shared\Contracts\NavBadgeProvider;
+use Amana\Shared\Notifications\Channels\AmanaDatabaseChannel;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -49,6 +51,14 @@ class AmanaSharedServiceProvider extends ServiceProvider
         $this->commands([
             MigrateSharedCommand::class,
         ]);
+
+        // Centre de notifications partagé — voir
+        // create_notifications_table.php / NotificationCenterService /
+        // Notifications\Channels\AmanaDatabaseChannel. Enregistré ici
+        // (une fois, pour toutes les apps) plutôt que dans chaque
+        // AppServiceProvider consommateur — même esprit que les autres
+        // pièces transverses de ce provider.
+        Notification::extend('amana-database', fn () => new AmanaDatabaseChannel);
 
         // Vues Blade partagées (login, mot de passe oublié, shell de
         // paramètres/journal/statistiques) — sans risque à auto-charger,
