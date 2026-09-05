@@ -19,8 +19,9 @@ use Illuminate\Support\Facades\Log;
  * Toujours filtrer par id_application lors de la lecture.
  *
  * Utilisation :
- *   Setting::get('heure_cours', 'planning')         → '20:00'
- *   Setting::get('offset_entree_debut', 'planning') → -30 (int)
+ *   Setting::get('heure_cours', 'planning')             → '20:00'
+ *   Setting::get('offset_entree_debut', 'planning')     → -30 (int)
+ *   Setting::get('route_distance_proximite_km', 'familles') → 2.5 (float)
  *   Setting::set('heure_cours', 'planning', '20:30')
  *
  * Type 'encrypted' (fusionné depuis amana_web_familles le 21/07/2026) :
@@ -177,8 +178,20 @@ class Setting extends Model
 
     private static function cast(string $valeur, string $type): mixed
     {
+        // Une valeur vide pour un type numérique ('integer'/'float') signifie
+        // "non configuré", pas zéro (ex. route_hq_latitude/longitude,
+        // amana_web_familles, volontairement laissées vides tant que
+        // l'admin ne les a pas renseignées) — (int) '' / (float) '' vaudant
+        // silencieusement 0/0.0 en PHP, on renvoie explicitement null pour
+        // que l'appelant puisse distinguer "pas encore réglé" d'un zéro
+        // légitime, plutôt que de recalculer depuis (0, 0) par erreur.
+        if ($valeur === '' && in_array($type, ['integer', 'float'], true)) {
+            return null;
+        }
+
         return match ($type) {
             'integer' => (int) $valeur,
+            'float' => (float) $valeur,
             'boolean' => in_array(strtolower($valeur), ['1', 'true', 'yes', 'oui'], true),
             'encrypted' => self::decryptSafely($valeur),
             'time', 'string' => $valeur,

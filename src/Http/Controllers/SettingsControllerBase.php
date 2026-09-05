@@ -70,22 +70,36 @@ abstract class SettingsControllerBase extends Controller
 
     public function update(Request $request): RedirectResponse
     {
-        $request->validate([
-            'settings' => ['required', 'array'],
-            'settings.*' => ['nullable', 'string', 'max:500'],
-        ]);
+        $appCode = $this->appCode();
+
+        // Chargé avant validate() : sert à la fois à connaître le type réel
+        // de chaque clé (voir typedValidationRules(), ajouté le 05/09/2026
+        // avec le type 'float' — une valeur non numérique soumise pour une
+        // clé float/integer doit être rejetée, pas castée silencieusement à
+        // 0/0.0 à la lecture) et à construire $avant pour l'audit, sans
+        // recharger deux fois les mêmes lignes.
+        $settingsMeta = Setting::allForApp($appCode);
+
+        $request->validate(array_merge(
+            [
+                'settings' => ['required', 'array'],
+                // Filet de sécurité générique pour une clé inconnue de
+                // $settingsMeta (ne devrait pas arriver depuis le formulaire
+                // généré, mais après tout $settingsInput vient de la requête) —
+                // typedValidationRules() resserre ensuite chaque clé connue.
+                'settings.*' => ['nullable', 'string', 'max:500'],
+            ],
+            $this->typedValidationRules($settingsMeta)
+        ));
 
         /** @var \Amana\Shared\Models\Personne $user */
         $user = Auth::user();
-        $appCode = $this->appCode();
         $settingsInput = $request->input('settings', []);
         $adminOnlyKeys = $this->adminOnlyKeys();
 
         $connection = DB::connection(config('amana-shared.connection', 'commun'));
 
-        $avant = Setting::allForApp($appCode)
-            ->map(fn($s) => $s['valeur_raw'])
-            ->toArray();
+        $avant = $settingsMeta->map(fn($s) => $s['valeur_raw'])->toArray();
 
         $idApp = $connection->table('ref_applications')->where('code', $appCode)->value('id');
 
@@ -100,12 +114,9 @@ abstract class SettingsControllerBase extends Controller
                 continue;
             }
 
-            $existe = $connection->table('ref_settings')
-                ->where('id_application', $idApp)
-                ->where('cle', $cle)
-                ->exists();
-
-            if (!$existe) {
+            // $settingsMeta (chargé ci-dessus) reflète déjà l'existence de la
+            // ligne — plus besoin d'un exists() supplémentaire par clé ici.
+            if (!isset($settingsMeta[$cle])) {
                 continue;
             }
 
@@ -124,5 +135,31 @@ abstract class SettingsControllerBase extends Controller
 
         return redirect()->route('settings.index')
             ->with('success', 'Paramètres enregistrés avec succès.');
+    }
+
+    /**
+     * Règles de validation par clé selon son type réel en base (ajouté le
+     * 05/09/2026 avec le type 'float') — settings.* générique ne suffit
+     * plus à protéger un helper comme RouteOptimizationConfig
+     * (amana_web_familles) qui caste désormais directement le résultat de
+     * Setting::get() en confiance : une valeur non numérique soumise pour
+     * une clé 'float'/'integer' doit être refusée ici, avant écriture.
+     *
+     * @return array<string, array<int, string>>
+     */
+    private function typedValidationRules(\Illuminate\Support\Collection $settingsMeta): array
+    {
+        $regles = [];
+
+        foreach ($settingsMeta as $cle => $donnee) {
+            $regles["settings.{$cle}"] = match ($donnee['type']) {
+                'float' => ['nullable', 'numeric'],
+                'integer' => ['nullable', 'integer'],
+                'boolean' => ['nullable', 'in:0,1'],
+                default => ['nullable', 'string', 'max:500'],
+            };
+        }
+
+        return $regles;
     }
 }

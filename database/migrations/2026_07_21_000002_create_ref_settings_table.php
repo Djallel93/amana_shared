@@ -17,6 +17,14 @@ use Illuminate\Support\Facades\Schema;
  * migration additive 2026_07_17_000001_add_encrypted_type_to_ref_settings.php
  * d'amana_web_familles) — plus besoin d'une migration additive séparée
  * pour les nouvelles apps.
+ *
+ * Type 'float' (ajouté le 05/09/2026, décision amana_web_familles) : avant
+ * son ajout, les réglages numériques décimaux (ex. ratios/distances de
+ * clustering) étaient stockés en 'string' et castés manuellement par
+ * chaque app consommatrice (voir App\Support\RouteOptimizationConfig,
+ * amana_web_familles) — Setting::cast() n'avait pas d'équivalent décimal
+ * à 'integer'. La valeur reste stockée en chaîne dans `valeur` (pas de
+ * colonne DECIMAL) : seul le cast à la lecture change, voir Setting::cast().
  */
 return new class extends Migration {
     public $connection = 'commun';
@@ -35,7 +43,7 @@ return new class extends Migration {
             $table->string('valeur', 500)
                 ->comment('Valeur stockée sous forme de chaîne, castée (ou déchiffrée) à la lecture');
 
-            $table->enum('type', ['string', 'integer', 'time', 'boolean', 'encrypted'])
+            $table->enum('type', ['string', 'integer', 'float', 'time', 'boolean', 'encrypted'])
                 ->default('string')
                 ->comment('Type de casting appliqué à la valeur lors de la lecture');
 
