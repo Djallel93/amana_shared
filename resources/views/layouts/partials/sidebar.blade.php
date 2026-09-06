@@ -9,10 +9,20 @@ le cas dans amana_web_planning avant la migration vers amana_shared).
 Format attendu de config('amana-shared.nav') — tableau ordonné de :
 ['section' => 'Libellé de section'] — titre de groupe
 ['route' => 'planning.index', 'label' => 'Planning',
-'icon' => '📅', 'role' => null|'membre'|'gestionnaire'|'admin',
+'icon' => '📅', 'role' => null|'membre'|'gestionnaire'|'admin'|<code de rôle applicatif quelconque>,
 'route_pattern' => 'planning.*'] — 'role' filtre l'affichage,
 'route_pattern' pilote le
 surlignage actif (défaut: 'route')
+
+'role' : d'abord testé contre la hiérarchie interne (hasAtLeastRole,
+admin ⊇ gestionnaire ⊇ membre ⊇ benevole) ; si ce n'est pas l'un de ces
+4 codes, retombe sur Personne::hasRole() — un test générique par code de
+rôle scopé à l'app courante (voir Amana\Shared\Models\Personne). Ajouté
+le 05/09/2026 pour amana_web_familles (rôles equipe_reception/pesee/
+packaging/chargement, voir EnsureLivraisonRole), SANS enseigner à ce
+paquet partagé la moindre notion propre à ces rôles — hasRole() existait
+déjà, générique, ce fallback fonctionne pour n'importe quel code de rôle
+de n'importe quelle app utilisant amana_shared, pas seulement livraison.
 --}}
 
 {{-- ── Mobile topbar ── --}}
@@ -122,7 +132,7 @@ surlignage actif (défaut: 'route')
                 @endphp
                 @foreach($navSections as $section => $items)
                     @php
-                        $itemsVisibles = collect($items)->filter(fn($item) => empty($item['role']) || auth()->user()?->hasAtLeastRole($item['role']));
+                        $itemsVisibles = collect($items)->filter(fn($item) => empty($item['role']) || auth()->user()?->hasAtLeastRole($item['role']) || auth()->user()?->hasRole($item['role']));
                     @endphp
                     @continue($itemsVisibles->isEmpty())
                     @if($section === '')
