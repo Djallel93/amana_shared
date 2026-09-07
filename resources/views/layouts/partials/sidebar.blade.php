@@ -15,14 +15,17 @@ Format attendu de config('amana-shared.nav') — tableau ordonné de :
 surlignage actif (défaut: 'route')
 
 'role' : d'abord testé contre la hiérarchie interne (hasAtLeastRole,
-admin ⊇ gestionnaire ⊇ membre ⊇ benevole) ; si ce n'est pas l'un de ces
-4 codes, retombe sur Personne::hasRole() — un test générique par code de
-rôle scopé à l'app courante (voir Amana\Shared\Models\Personne). Ajouté
-le 05/09/2026 pour amana_web_familles (rôles equipe_reception/pesee/
-packaging/chargement, voir EnsureLivraisonRole), SANS enseigner à ce
-paquet partagé la moindre notion propre à ces rôles — hasRole() existait
-déjà, générique, ce fallback fonctionne pour n'importe quel code de rôle
-de n'importe quelle app utilisant amana_shared, pas seulement livraison.
+admin ⊇ gestionnaire ⊇ membre ⊇ benevole) pour ces 4 codes précis ; pour
+tout autre code, visible pour qui détient spécifiquement ce rôle
+(Personne::hasRole(), scopé à l'app courante) OU pour gestionnaire/admin
+— ce dernier volet ajouté le 05/09/2026 pour amana_web_familles (rôles
+equipe_reception/pesee/packaging/chargement, voir EnsureLivraisonRole,
+qui accorde déjà l'accès à gestionnaire/admin même sans le rôle
+spécifique) : sans lui, un compte gestionnaire qui A accès à ces pages
+ne voyait jamais leur lien de sidebar. Toujours SANS enseigner à ce
+paquet partagé la moindre notion propre à ces rôles précis — le
+mécanisme reste générique, valable pour n'importe quel code de rôle de
+n'importe quelle app utilisant amana_shared.
 --}}
 
 {{-- ── Mobile topbar ── --}}
@@ -132,7 +135,33 @@ de n'importe quelle app utilisant amana_shared, pas seulement livraison.
                 @endphp
                 @foreach($navSections as $section => $items)
                     @php
-                        $itemsVisibles = collect($items)->filter(fn($item) => empty($item['role']) || auth()->user()?->hasAtLeastRole($item['role']) || auth()->user()?->hasRole($item['role']));
+                        $itemsVisibles = collect($items)->filter(function ($item) {
+                            if (empty($item['role']))
+                                return true;
+                            $utilisateur = auth()->user();
+                            if (!$utilisateur)
+                                return false;
+
+                            // Codes de la hiérarchie interne (voir docblock
+                            // plus haut) : uniquement hasAtLeastRole(), pour
+                            // ne jamais élargir un lien 'admin' à un simple
+                            // gestionnaire.
+                            if (in_array($item['role'], ['membre', 'gestionnaire', 'admin', 'benevole'], true)) {
+                                return $utilisateur->hasAtLeastRole($item['role']);
+                            }
+
+                            // Code de rôle applicatif quelconque (ex:
+                            // equipe_pesee) : visible pour qui détient
+                            // spécifiquement ce rôle, OU pour gestionnaire/
+                            // admin — reflète le pattern déjà utilisé par ces
+                            // apps (voir amana_web_familles::EnsureLivraisonRole,
+                            // "un admin ou un gestionnaire passe toujours").
+                            // Ajouté le 05/09/2026 : sans ce deuxième volet,
+                            // un compte gestionnaire (qui A accès à ces pages
+                            // via le middleware) ne voyait jamais leur lien de
+                            // sidebar, seul un compte equipe_* pur le voyait.
+                            return $utilisateur->hasRole($item['role']) || $utilisateur->hasAtLeastRole('gestionnaire');
+                        });
                     @endphp
                     @continue($itemsVisibles->isEmpty())
                     @if($section === '')
