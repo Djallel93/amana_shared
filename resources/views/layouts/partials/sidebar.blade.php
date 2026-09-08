@@ -26,6 +26,22 @@ ne voyait jamais leur lien de sidebar. Toujours SANS enseigner à ce
 paquet partagé la moindre notion propre à ces rôles précis — le
 mécanisme reste générique, valable pour n'importe quel code de rôle de
 n'importe quelle app utilisant amana_shared.
+
+'extra_check' (optionnel) : callable(int $idPersonne, string $role): bool
+supplémentaire, testé en OR après hasRole()/hasAtLeastRole('gestionnaire')
+si aucun des deux n'a déjà rendu l'entrée visible. Ajouté le 08/09/2026
+pour amana_web_familles (rôles equipe_* affectables PAR CAMPAGNE en plus
+du rôle global, voir App\Models\CampagneEquipeMembre::estAffecteQuelquePart()
+dans ce projet) : une personne peut désormais avoir accès à
+livraison.pesee.choisir() sans jamais avoir eu le rôle global
+'equipe_pesee' coché — hasRole() seul ne suffit plus à décider qui voit
+le lien. Passé comme un tableau [FQCN::class, 'methodeStatique'] plutôt
+qu'une Closure : reste sérialisable si ce projet active un jour
+`config:cache` (une Closure ferait échouer la commande), et garde ce
+paquet partagé totalement ignorant de ce qu'est CampagneEquipeMembre —
+il se contente d'appeler ce qu'on lui passe. Optionnel : les entrées de
+nav qui n'en ont pas besoin (la grande majorité) n'en spécifient
+simplement pas.
 --}}
 
 {{-- ── Mobile topbar ── --}}
@@ -160,7 +176,21 @@ n'importe quelle app utilisant amana_shared.
                             // un compte gestionnaire (qui A accès à ces pages
                             // via le middleware) ne voyait jamais leur lien de
                             // sidebar, seul un compte equipe_* pur le voyait.
-                            return $utilisateur->hasRole($item['role']) || $utilisateur->hasAtLeastRole('gestionnaire');
+                            if ($utilisateur->hasRole($item['role']) || $utilisateur->hasAtLeastRole('gestionnaire')) {
+                                return true;
+                            }
+
+                            // 'extra_check' optionnel (08/09/2026, voir
+                            // docblock plus haut) : un accès accordé par un
+                            // mécanisme propre à l'app, ni la hiérarchie
+                            // interne ni Personne::hasRole() — ce paquet ne
+                            // sait pas ce que ce callable vérifie, il se
+                            // contente de l'appeler.
+                            if (!empty($item['extra_check']) && is_callable($item['extra_check'])) {
+                                return (bool) call_user_func($item['extra_check'], $utilisateur->id, $item['role']);
+                            }
+
+                            return false;
                         });
                     @endphp
                     @continue($itemsVisibles->isEmpty())
