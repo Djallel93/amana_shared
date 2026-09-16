@@ -106,17 +106,20 @@ simplement pas.
                                                                     bg-amber-500/[0.14] text-amber-300 border border-amber-500/[0.22]">
                     ⚙️ Gestionnaire
                 </div>
-            @elseif(method_exists(auth()->user(), 'isBenevole') && auth()->user()->isBenevole())
-                <div
-                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
-                                                                    bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
-                    🤝 Bénévole
-                </div>
-            @else
+            @elseif(!method_exists(auth()->user(), 'isMembre') || auth()->user()->isMembre())
+                {{-- isMembre() doit être testé AVANT isBenevole() : la cascade
+                     (membre ⊇ benevole) fait que isBenevole() est vrai pour tout
+                     membre, donc l'ordre inverse étiquetait les membres « Bénévole ». --}}
                 <div
                     class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
                                                                     bg-sky-500/[0.14] text-sky-300 border border-sky-500/[0.22]">
                     👤 Membre
+                </div>
+            @else
+                <div
+                    class="mx-1 mb-2.5 px-[11px] py-[7px] rounded-sm text-[11px] font-semibold flex items-center gap-1.5
+                                                                    bg-emerald-500/[0.14] text-emerald-300 border border-emerald-500/[0.22]">
+                    🤝 Bénévole
                 </div>
             @endif
         @endauth
@@ -253,8 +256,8 @@ simplement pas.
                 <div class="text-[11px] text-white/32 mt-px">
                     @if(auth()->user()->isAdmin()) Administrateur
                     @elseif(auth()->user()->isGestionnaire()) Gestionnaire
-                    @elseif(method_exists(auth()->user(), 'isBenevole') && auth()->user()->isBenevole()) Bénévole
-                    @else Membre
+                    @elseif(!method_exists(auth()->user(), 'isMembre') || auth()->user()->isMembre()) Membre
+                    @else Bénévole
                     @endif
                 </div>
             </div>
