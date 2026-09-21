@@ -218,6 +218,46 @@ class Personne extends Model implements
         return $this->prenom . ' ' . strtoupper($this->nom);
     }
 
+    /**
+     * Initiales pour l'avatar (pastille de la sidebar, page « Mon profil ») :
+     * première LETTRE du prénom + première LETTRE du nom, en majuscules.
+     * Multi-octets (fonctions mb_ et classe \p{L}) : « Émilie » → « É », « Jean-Pierre » → « J »
+     * (seule la première lettre de chaque champ compte), et les caractères
+     * non alphabétiques en tête (« (Ali », « 'Omar ») sont ignorés. Champs
+     * vides ou sans aucune lettre → « ? » plutôt qu'une pastille vide.
+     */
+    public function getInitialesAttribute(): string
+    {
+        $initiales = '';
+
+        foreach ([$this->prenom, $this->nom] as $partie) {
+            if (is_string($partie) && preg_match('/\p{L}/u', $partie, $m) === 1) {
+                $initiales .= mb_substr(mb_strtoupper($m[0], 'UTF-8'), 0, 1, 'UTF-8');
+            }
+        }
+
+        return $initiales !== '' ? $initiales : '?';
+    }
+
+    /**
+     * Couleur de fond de l'avatar, déterministe à partir de l'ID — l'ID vient
+     * de ref_personnes (base commune), donc une même personne a la MÊME
+     * couleur dans toutes les apps AMANA. Teinte par angle d'or (137,508°)
+     * pour que des IDs consécutifs soient bien distincts ; saturation 55 % et
+     * luminosité 30 % : texte blanc lisible quelle que soit la teinte
+     * (contraste ≥ 4,5:1, vérifié sur les 360° — voir PersonneAvatarTest),
+     * et suffisamment clair pour se détacher du fond sombre `bg-sidebar`
+     * avec l'anneau de la pastille. Valeur CSS complète, à poser en `style`
+     * inline (aucune dépendance à un safelist Tailwind).
+     */
+    public function getCouleurAvatarAttribute(): string
+    {
+        $id = (int) $this->getKey();
+        $teinte = $id > 0 ? (int) round(fmod($id * 137.508, 360.0)) : 210;
+
+        return "hsl({$teinte}, 55%, 30%)";
+    }
+
     public function routeNotificationForMail(): string
     {
         return $this->email;

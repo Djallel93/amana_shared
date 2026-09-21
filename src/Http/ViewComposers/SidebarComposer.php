@@ -8,6 +8,7 @@ namespace Amana\Shared\Http\ViewComposers;
 use Amana\Shared\Contracts\NavBadgeProvider;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Contracts\View\View;
+use Amana\Shared\Models\Personne;
 use Illuminate\Routing\Router;
 
 /**
@@ -23,6 +24,12 @@ use Illuminate\Routing\Router;
  *                      n'émet aucun script et l'app se comporte comme avant :
  *                      aucune requête supplémentaire, aucun 404.
  *   - $navBadgesPollSeconds : intervalle de rafraîchissement (plancher 15 s).
+ *
+ * Point d'entrée « Mon profil » :
+ *   - $profileUrl : URL de la page de profil, ou null. Non null SEULEMENT si un
+ *                   utilisateur (Personne) est connecté ET que l'app a
+ *                   enregistré la route (config 'profile_route', défaut
+ *                   'profile.edit') ; sinon la sidebar garde l'ancien logo.
  */
 class SidebarComposer
 {
@@ -43,7 +50,11 @@ class SidebarComposer
 
         $vue = $lie && $connecte && $this->router->has($nomRoute);
 
+        $nomProfil = (string) config('amana-shared.profile_route', 'profile.edit');
+        $profil = auth()->user() instanceof Personne && $this->router->has($nomProfil);
+
         $view->with('navBadges', $navBadges)
+            ->with('profileUrl', $profil ? route($nomProfil) : null)
             ->with('navBadgesUrl', $vue ? route($nomRoute) : null)
             ->with('navBadgesPollSeconds', max(15, (int) config('amana-shared.nav_badges_poll_seconds', 45)));
     }

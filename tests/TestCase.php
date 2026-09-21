@@ -53,7 +53,17 @@ abstract class TestCase extends PHPUnitTestCase
     protected function configuration(): array
     {
         $tmp = sys_get_temp_dir() . '/amana-shared-tests';
-        @mkdir($tmp . '/views', 0777, true);
+        @mkdir($tmp . '/views/layouts', 0777, true);
+        // Layout local de l'app. Le vrai (amana-shared::layouts.app) charge Vite
+        // dans <head>, sans intérêt ici : on garde ce qu'il assemble autour du
+        // contenu — sidebar, messages flash, section « content ».
+        file_put_contents($tmp . '/views/layouts/app.blade.php', <<<'BLADE'
+<!DOCTYPE html><html lang="fr"><body>
+@include('amana-shared::layouts.partials.sidebar')
+@include('amana-shared::layouts.partials.flash')
+@yield('content')
+</body></html>
+BLADE);
 
         return [
             'app' => [
@@ -85,6 +95,7 @@ abstract class TestCase extends PHPUnitTestCase
                 'default' => 'commun',
                 'connections' => ['commun' => ['driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => false]],
             ],
+            'queue' => ['default' => 'sync', 'connections' => ['sync' => ['driver' => 'sync']], 'failed' => ['driver' => 'null']],
             'hashing' => ['driver' => 'bcrypt', 'bcrypt' => ['rounds' => 4]],
             'logging' => ['default' => 'null', 'channels' => ['null' => ['driver' => 'monolog', 'handler' => \Monolog\Handler\NullHandler::class]]],
             'mail' => [
@@ -107,6 +118,10 @@ abstract class TestCase extends PHPUnitTestCase
         $tmp = sys_get_temp_dir() . '/amana-shared-tests';
         @mkdir($tmp . '/compiled', 0777, true);
         @mkdir($tmp . '/storage/framework', 0777, true);
+
+        // Certains composants du framework (notification de réinitialisation) déduisent le
+        // namespace de l'app depuis composer.json.
+        file_put_contents($tmp . '/composer.json', '{"autoload":{"psr-4":{"App\\\\":"app/"}}}');
 
         $app = new Application($tmp);
         $app->useStoragePath($tmp . '/storage');
@@ -134,8 +149,11 @@ abstract class TestCase extends PHPUnitTestCase
             \Illuminate\Auth\AuthServiceProvider::class,
             \Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
             \Illuminate\Mail\MailServiceProvider::class,
+            \Illuminate\Bus\BusServiceProvider::class,
+            \Illuminate\Queue\QueueServiceProvider::class,
             \Illuminate\Notifications\NotificationServiceProvider::class,
             \Illuminate\Foundation\Providers\FormRequestServiceProvider::class,
+            \Illuminate\Foundation\Providers\FoundationServiceProvider::class,
             AmanaSharedServiceProvider::class,
         ] as $provider) {
             $app->register($provider);
@@ -273,6 +291,58 @@ abstract class TestCase extends PHPUnitTestCase
     protected function json(Response $response): array
     {
         return json_decode((string) $response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+    }
+
+    /**
+     * Emails envoyés via le transport « array » (aucun envoi réel).
+     *
+     * @return array<int, array{to: string, subject: string, html: string}>
+     */
+    protected function mails(): array
+    {
+        $transport = $this->app['mail.manager']->mailer('array')->getSymfonyTransport();
+
+        return $transport->messages()->map(function ($sent) {
+            $email = $sent->getOriginalMessage();
+
+            return [
+                'to' => $email->getTo()[0]->getAddress(),
+                'subject' => (string) $email->getSubject(),
+                'html' => (string) $email->getHtmlBody(),
+            ];
+        })->values()->all();
+    }
+
+    protected function viderMails(): void
+    {
+        $this->app['mail.manager']->mailer('array')->getSymfonyTransport()->flush();
+    }
+
+    /** Les six routes de la page « Mon profil », telles que documentées dans le README. */
+    protected function routesProfil(bool $avecExtra = true): void
+    {
+        $router = $this->app['router'];
+        $router->aliasMiddleware('auth', \Illuminate\Auth\Middleware\Authenticate::class);
+        $router->aliasMiddleware('signed', \Illuminate\Routing\Middleware\ValidateSignature::class);
+
+        $this->route('GET', '/login', fn () => 'login')->name('login');
+        $this->route('GET', '/mot-de-passe-oublie', fn () => 'oublie')->name('password.request');
+        $this->route('GET', '/nouveau-mot-de-passe/{token}', fn () => 'reset')->name('password.reset');
+        $this->route('GET', '/', fn () => 'accueil')->name('home');
+        $this->route('POST', '/logout', fn () => 'bye')->name('logout');
+        $this->app['config']->set('amana-shared.home_route', 'home');
+        $this->app['config']->set('amana-shared.profile_email_dns', false);
+
+        $c = \Amana\Shared\Http\Controllers\ProfileController::class;
+        $this->route('GET', '/mon-profil', [$c, 'edit'])->name('profile.edit')->middleware('auth');
+        $this->route('PUT', '/mon-profil', [$c, 'update'])->name('profile.update')->middleware('auth');
+        $this->route('POST', '/mon-profil/email', [$c, 'requestEmailChange'])->name('profile.email.request')->middleware('auth');
+        $this->route('GET', '/mon-profil/email/confirmer', [$c, 'confirmEmailChange'])->name('profile.email.confirm')->middleware(['auth', 'signed']);
+        $this->route('PUT', '/mon-profil/mot-de-passe', [$c, 'updatePassword'])->name('profile.password.update')->middleware('auth');
+        if ($avecExtra) {
+            $this->route('PUT', '/mon-profil/extra', [$c, 'updateExtra'])->name('profile.extra.update')->middleware('auth');
+        }
+        $router->getRoutes()->refreshNameLookups();
     }
 
     /** Dernière session ouverte par le noyau (pour lire flash/erreurs). */

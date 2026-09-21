@@ -339,6 +339,102 @@ rafraîchissement est actif, le badge est toujours présent (masqué à 0) avec
 > ⚠️ Une app qui a publié `resources/views/vendor/amana-shared/…` ne reçoit **pas** ces vues :
 > republier ou reporter la modification à la main.
 
+## Page « Mon profil »
+
+Depuis la v2.5.0, la sidebar remplace le logo par une **pastille d'initiales** (couleur dérivée de
+l'id `ref_personnes` : la même personne a la même pastille dans toutes les apps) qui ouvre une page
+« Mon profil » commune : nom, prénom, téléphone (format français), changement d'adresse email et de
+mot de passe (avec confirmation), rôle(s) de l'app en lecture seule, et une section propre à l'app.
+Le texte « AMANA » / le nom de l'app reste le lien vers l'accueil. Dans le footer, la petite pastille
+disparaît et la déconnexion devient un bouton libellé « Se déconnecter ».
+
+**Opt-in par app** : sans la route `profile.edit`, la sidebar garde l'ancien logo (aucun lien vers
+le profil, aucune erreur). Même sans utilisateur connecté, la sidebar s'affiche sans erreur.
+
+```php
+// routes/web.php — le package n'enregistre aucune route ; middleware d'authentification de l'app
+use Amana\Shared\Http\Controllers\ProfileController;
+
+Route::middleware('auth')->prefix('mon-profil')->name('profile.')->group(function () {
+    Route::get('/', [ProfileController::class, 'edit'])->name('edit');
+    Route::put('/', [ProfileController::class, 'update'])->name('update')->middleware('throttle:20,1');
+    Route::post('/email', [ProfileController::class, 'requestEmailChange'])->name('email.request')->middleware('throttle:5,1');
+    Route::get('/email/confirmer', [ProfileController::class, 'confirmEmailChange'])->name('email.confirm')->middleware(['signed', 'throttle:10,1']);
+    Route::put('/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('password.update')->middleware('throttle:5,1');
+    Route::put('/extra', [ProfileController::class, 'updateExtra'])->name('extra.update')->middleware('throttle:20,1'); // seulement si l'app lie une extension
+});
+```
+
+Ces routes n'ont **aucun** middleware de rôle : toute personne connectée (bénévole, membre,
+`gestionnaire_externe`…) y a accès. Le contrôleur n'agit que sur l'utilisateur connecté — aucun id de
+personne dans les routes ni les requêtes — et applique une liste blanche stricte (jamais de rôle,
+statut, `date_debut_planning`, `id`, `email_verified_at`, `remember_token`). Le nom `profile.password.update`
+ne rentre pas en conflit avec `password.update` du flux de réinitialisation.
+
+**Changement d'adresse** : mot de passe actuel requis ; l'adresse ne change pas tout de suite, un lien
+signé (60 min, effet unique — voir `Services\EmailChangeLink`, sans aucune table) part vers la NOUVELLE
+adresse ; à la confirmation : `email_verified_at` = maintenant, audit, jetons de réinitialisation de
+l'ancienne adresse supprimés, notice à l'ANCIENNE adresse. Le lien doit être ouvert par la personne
+concernée : sinon le compte connecté est déconnecté et on redirige vers `login` en conservant l'URL.
+**Changement de mot de passe** : ≥ 8 caractères, différent de l'actuel ; jeton « se souvenir de moi »
+régénéré, session régénérée, email de notification, audit sans secret.
+
+**Clés de config** (premier niveau, avec ces défauts dans le code) : `profile_route` (`profile.edit`),
+`profile_email_dns` (`true` : contrôle DNS `email:rfc,dns` ; `false` = RFC seulement).
+
+**Téléphone** : `Support\PhoneFr` (regex + message définis une fois). Il accepte en plus un espace après
+`+33`/`0033` : l'expression du formulaire admin de planning refuse son propre exemple « +33 6 12 34 56 78 ».
+
+### Section spécifique à l'app (`Contracts\ProfileExtension`)
+
+Même schéma que `NavBadgeProvider` : l'app lie une implémentation, la page ne la résout que si elle est
+liée **et** que la route `profile.extra.update` existe. Rendu déclaratif (aucune vue à écrire) :
+
+```php
+// AppServiceProvider::register()
+$this->app->bind(\Amana\Shared\Contracts\ProfileExtension::class, \App\Services\MonExtensionProfil::class);
+```
+
+`title()`, `fields($personne)` (tableaux `name`, `label`, `type` = text|tel|number|date|select|multiselect|
+checkbox|textarea, `value`, `options`, `hint`, `required`), `rules($personne)`, `save($personne, $validated)`
+et `view()` (échappatoire : nom d'une vue Blade qui remplace le rendu des champs, `null` sinon).
+Si `fields()` renvoie un tableau vide pour une personne (ex. pas de profil bénévole), la section est masquée et la route de sauvegarde répond 404.
+`save()` ne reçoit que les clés de `rules()` (et jamais `statut`, `roles`, `email`, `password`, `id`…).
+**L'extension ne doit exposer que des champs modifiables par la personne — jamais de donnée pilotée par un
+administrateur (statuts, indicateurs de validation, rôles).** Les changements sont audités (module `profil_extra`).
+
+## Notifications de sécurité du compte
+
+`Services\AccountChangeNotifier` est le point d'entrée unique des emails de sécurité (gabarit
+`emails/compte.blade.php`, logo CID, copie en français). **Un échec d'envoi ne doit jamais annuler ni bloquer
+le changement** (envoi synchrone) : chaque méthode attrape et journalise, et renvoie `false` en cas d'échec
+pour que l'appelant affiche un avertissement. Aucun secret dans les journaux.
+
+```php
+$notifier = app(\Amana\Shared\Services\AccountChangeNotifier::class);
+
+// 1. Un admin modifie l'email d'une personne (à appeler seulement si l'adresse a CHANGÉ).
+//    Capturer l'ancienne adresse AVANT l'enregistrement : ensuite $personne->email est déjà la nouvelle.
+$ancien = $personne->email;
+$personne->update($validated);
+if ($personne->wasChanged('email')) {
+    $ok = $notifier->emailChanged($personne, $ancien, $personne->email, parAdministrateur: true);
+    if (! $ok) { /* flash 'warning' : AccountChangeNotifier::AVERTISSEMENT_ECHEC */ }
+}
+
+// 2. « Mot de passe modifié/défini » partout où un mot de passe est posé.
+//    Contextes : profil | reinitialisation | creation | administrateur
+$notifier->passwordChanged($personne, 'reinitialisation');
+
+// 3. Action admin « Envoyer un lien de réinitialisation » : l'admin ne voit ni ne saisit jamais de mot de passe.
+//    Renvoie un statut du broker (Password::RESET_LINK_SENT, RESET_THROTTLED…) ou STATUT_ECHEC_ENVOI ; audité, sans jeton.
+$statut = $notifier->sendResetLink($personne); // route admin-only, throttle:5,1
+```
+
+Le `AuthController` partagé envoie déjà la notice à la fin de `resetPassword` (contexte `creation` si le compte
+n'avait pas de mot de passe, sinon `reinitialisation`) : rien à faire côté app qui l'utilise. Une app qui a son propre
+flux (ex. planning) appelle `passwordChanged()` elle-même. Une app non mise à jour garde son comportement actuel.
+
 ## Géographie partagée : Ville / Secteur / Quartier
 
 Déplacées depuis `amana_web_familles` le 21/07/2026 : bien que seule

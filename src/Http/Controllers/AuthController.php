@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Amana\Shared\Http\Controllers;
 
 use Amana\Shared\Models\Personne;
+use Amana\Shared\Services\AccountChangeNotifier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -162,9 +163,17 @@ class AuthController extends Controller
             'password.confirmed' => 'La confirmation ne correspond pas au mot de passe.',
         ]);
 
+        // Un compte sans mot de passe (invitation, création par un admin) « définit »
+        // son mot de passe ; sinon il le « réinitialise » — le texte de l'email de
+        // notification s'adapte (Notifications\PasswordChangedNotification).
+        $contexte = 'reinitialisation';
+        $personneReinitialisee = null;
+
         $status = Password::broker('personnes')->reset(
             $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (Personne $personne, string $password) {
+            function (Personne $personne, string $password) use (&$contexte, &$personneReinitialisee) {
+                $contexte = empty($personne->password) ? 'creation' : 'reinitialisation';
+
                 $personne->forceFill([
                     'password' => \Illuminate\Support\Facades\Hash::make($password),
                 ])->setRememberToken(\Illuminate\Support\Str::random(60));
@@ -172,12 +181,22 @@ class AuthController extends Controller
                 $personne->save();
 
                 event(new \Illuminate\Auth\Events\PasswordReset($personne));
+
+                $personneReinitialisee = $personne;
             }
         );
 
         if ($status === Password::PASSWORD_RESET) {
-            return redirect()->route('login')
+            // Notice « mot de passe modifié/défini » : un échec d'envoi ne bloque jamais la réinitialisation.
+            $notifie = $personneReinitialisee === null
+                || app(AccountChangeNotifier::class)->passwordChanged($personneReinitialisee, $contexte);
+
+            $retour = redirect()->route('login')
                 ->with('success', 'Votre mot de passe a été réinitialisé. Vous pouvez maintenant vous connecter.');
+
+            return $notifie
+                ? $retour
+                : $retour->with('warning', "Mot de passe enregistré, mais la notification n'a pas pu être envoyée.");
         }
 
         return back()->withErrors(['email' => 'Ce lien de réinitialisation est invalide ou a expiré.']);

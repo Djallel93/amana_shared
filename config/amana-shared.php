@@ -133,6 +133,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Page « Mon profil »
+    |--------------------------------------------------------------------------
+    |
+    | Comme pour les badges : opt-in par app. La sidebar n'affiche la pastille
+    | d'initiales (et le lien vers le profil) que si l'app a enregistré la route
+    | `profile_route` ; sinon l'ancien logo reste en place. Lues avec ces valeurs
+    | par défaut dans le code : un config/amana-shared.php publié plus ancien
+    | fonctionne sans ces clés.
+    |
+    |   profile_route     : nom de la route d'affichage (GET) du profil
+    |   profile_email_dns : contrôle DNS (email:rfc,dns) sur la nouvelle adresse ;
+    |                       false = format RFC seulement (env. sans réseau / tests)
+    |
+    */
+    'profile_route' => 'profile.edit',
+    'profile_email_dns' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Thème couleur des emails (resources/views/emails/partials/_head.blade.php)
     |--------------------------------------------------------------------------
     |

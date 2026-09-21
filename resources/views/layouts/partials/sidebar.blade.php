@@ -44,9 +44,30 @@ nav qui n'en ont pas besoin (la grande majorité) n'en spécifient
 simplement pas.
 --}}
 
+{{-- Point d'entrée « Mon profil » : la pastille d'initiales remplace le logo, mais SEULEMENT si
+     l'app a enregistré la route (config 'profile_route' ; voir SidebarComposer::$profileUrl) et qu'un
+     utilisateur est connecté. Sinon : ancien logo, aucun lien vers le profil, aucune erreur. --}}
+@php
+    $profilCourant = (! empty($profileUrl ?? null) && auth()->user() instanceof \Amana\Shared\Models\Personne)
+        ? auth()->user()
+        : null;
+    $profilActif = $profilCourant && request()->routeIs('profile.*');
+@endphp
+
 {{-- ── Mobile topbar ── --}}
 <div
     class="sm:hidden fixed top-0 left-0 right-0 h-topbar bg-sidebar z-[300] flex items-center justify-between px-4 border-b border-white/[0.06]">
+    @if($profilCourant)
+        {{-- Pastille d'initiales → « Mon profil » ; le nom de l'app reste le lien vers l'accueil. --}}
+        <div class="flex items-center gap-1 min-w-0">
+            <a href="{{ $profileUrl }}" aria-label="Mon profil" @if($profilActif) aria-current="page" @endif
+                class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
+                @include('amana-shared::layouts.partials.avatar', ['personne' => $profilCourant, 'size' => 32, 'actif' => $profilActif])
+            </a>
+            <a href="{{ route(config('amana-shared.home_route')) }}"
+                class="font-heading text-[15px] font-semibold text-white no-underline truncate min-h-[44px] flex items-center">{{ config('amana-shared.branding.app_name') }}</a>
+        </div>
+    @else
     <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-2.5 no-underline">
         <span class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 inline-block">
             <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
@@ -54,6 +75,7 @@ simplement pas.
         <span
             class="font-heading text-[15px] font-semibold text-white">{{ config('amana-shared.branding.app_name') }}</span>
     </a>
+    @endif
     <button id="hamburgerBtn"
         class="flex flex-col gap-[5px] items-center justify-center w-10 h-10 rounded-md text-white/70 hover:bg-white/10 hover:text-white/75 transition-colors"
         aria-label="Menu" aria-expanded="false">
@@ -75,6 +97,21 @@ simplement pas.
 
     {{-- Brand --}}
     <div class="px-5 py-[22px] pb-[18px] border-b border-white/[0.06] relative z-10">
+        @if($profilCourant)
+            {{-- Deux liens : pastille → « Mon profil », texte → accueil. --}}
+            <div class="flex items-center gap-[8px]">
+                <a href="{{ $profileUrl }}" aria-label="Mon profil" @if($profilActif) aria-current="page" @endif
+                    class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
+                    @include('amana-shared::layouts.partials.avatar', ['personne' => $profilCourant, 'size' => 38, 'actif' => $profilActif])
+                </a>
+                <a href="{{ route(config('amana-shared.home_route')) }}" class="flex flex-col no-underline min-w-0">
+                    <span
+                        class="font-heading text-[16px] font-semibold text-white leading-none tracking-[0.2px]">AMANA</span>
+                    <span
+                        class="text-[10px] text-white/35 tracking-widest uppercase font-medium mt-0.5">{{ config('amana-shared.branding.tagline_short', '') }}</span>
+                </a>
+            </div>
+        @else
         <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-[11px] no-underline">
             <span
                 class="w-[38px] h-[38px] rounded-full overflow-hidden flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block">
@@ -87,6 +124,7 @@ simplement pas.
                     class="text-[10px] text-white/35 tracking-widest uppercase font-medium mt-0.5">{{ config('amana-shared.branding.tagline_short', '') }}</span>
             </div>
         </a>
+        @endif
     </div>
 
     {{-- Nav section --}}
@@ -179,37 +217,39 @@ simplement pas.
 
     </div>
 
-    {{-- Footer utilisateur --}}
-    <div class="px-3.5 py-3.5 border-t border-white/[0.06]">
-        <div class="flex items-center gap-2.5 px-2.5 py-2 rounded-sm bg-white/[0.05]">
-            <div
-                class="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-xs text-white font-bold flex-shrink-0">
-                {{ strtoupper(substr(auth()->user()->prenom ?? 'A', 0, 1)) }}
-            </div>
-            <div class="flex-1 min-w-0 overflow-hidden">
-                <div class="text-[12.5px] text-white/80 font-semibold truncate">
-                    {{ auth()->user()->prenom ?? '' }} {{ auth()->user()->nom ?? '' }}
+    {{-- Footer utilisateur (uniquement pour une personne connectée) --}}
+    @auth
+        <div class="px-3.5 py-3.5 border-t border-white/[0.06]">
+            <div class="flex items-center gap-2.5 px-2.5 py-2 rounded-sm bg-white/[0.05]">
+                <div class="flex-1 min-w-0 overflow-hidden">
+                    <div class="text-[12.5px] text-white/80 font-semibold truncate">
+                        {{ auth()->user()->prenom ?? '' }} {{ auth()->user()->nom ?? '' }}
+                    </div>
+                    <div class="text-[11px] text-white/32 mt-px">
+                        @if(auth()->user()->isAdmin()) Administrateur
+                        @elseif(auth()->user()->isGestionnaire()) Gestionnaire
+                        @elseif(!method_exists(auth()->user(), 'isMembre') || auth()->user()->isMembre()) Membre
+                        @else Bénévole
+                        @endif
+                    </div>
                 </div>
-                <div class="text-[11px] text-white/32 mt-px">
-                    @if(auth()->user()->isAdmin()) Administrateur
-                    @elseif(auth()->user()->isGestionnaire()) Gestionnaire
-                    @elseif(!method_exists(auth()->user(), 'isMembre') || auth()->user()->isMembre()) Membre
-                    @else Bénévole
-                    @endif
-                </div>
+                <button type="button" onclick="toggleAppTheme()" title="Changer le thème"
+                    class="text-white/30 hover:text-accent-light text-base p-1 rounded transition-colors bg-transparent border-0 cursor-pointer leading-none flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                    <span data-theme-icon>🌙</span>
+                </button>
             </div>
-            <button type="button" onclick="toggleAppTheme()" title="Changer le thème"
-                class="text-white/30 hover:text-accent-light text-base p-1 rounded transition-colors bg-transparent border-0 cursor-pointer leading-none flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
-                <span data-theme-icon>🌙</span>
-            </button>
-            <form action="{{ route('logout') }}" method="POST">
+            {{-- Déconnexion : bouton visible et libellé (l'ancienne petite icône ↪ à 30 % d'opacité passait
+                 inaperçue). POST + CSRF, cible tactile ≥ 44 px, contraste réel, états hover/focus nets. --}}
+            <form action="{{ route('logout') }}" method="POST" class="mt-2.5">
                 @csrf
                 <button type="submit"
-                    class="text-white/30 hover:text-rose-400 text-base p-1 rounded transition-colors bg-transparent border-0 cursor-pointer leading-none flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center"
-                    title="Déconnexion">↪</button>
+                    class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/20 bg-white/[0.06] text-[13px] font-semibold text-white/90 cursor-pointer transition-colors hover:bg-rose-500/25 hover:border-rose-400/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300">
+                    <span aria-hidden="true">🚪</span>
+                    <span>Se déconnecter</span>
+                </button>
             </form>
         </div>
-    </div>
+    @endauth
 
 </aside>
 
