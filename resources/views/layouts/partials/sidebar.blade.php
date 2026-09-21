@@ -142,6 +142,10 @@ simplement pas.
                     // compteur que cette sidebar masquerait).
                     $navVisibility = app(\Amana\Shared\Services\NavVisibility::class);
                     $navSections = $navVisibility->sections(config('amana-shared.nav', []));
+                    // Rafraîchissement en direct des badges : actif seulement si
+                    // le composer a fourni une URL (fournisseur lié + route
+                    // enregistrée + utilisateur connecté).
+                    $navBadgesLive = ! empty($navBadgesUrl ?? null);
                 @endphp
                 @foreach($navSections as $section => $items)
                     @php $itemsVisibles = $navVisibility->filter($items, auth()->user()); @endphp
@@ -151,6 +155,7 @@ simplement pas.
                             @include('amana-shared::layouts.partials.nav-item', [
                                 'item' => $item,
                                 'navBadge' => ($navBadges ?? [])[$item['route']] ?? 0,
+                                'navBadgesLive' => $navBadgesLive,
                             ])
                         @endforeach
                     @else
@@ -165,6 +170,7 @@ simplement pas.
                                 @include('amana-shared::layouts.partials.nav-item', [
                                     'item' => $item,
                                     'navBadge' => ($navBadges ?? [])[$item['route']] ?? 0,
+                                    'navBadgesLive' => $navBadgesLive,
                                 ])
                             @endforeach
                         </details>
@@ -206,3 +212,7 @@ simplement pas.
     </div>
 
 </aside>
+
+@if(! empty($navBadgesUrl ?? null))
+    @include('amana-shared::layouts.partials.nav-badges-script')
+@endif

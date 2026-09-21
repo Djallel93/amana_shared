@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Amana\Shared;
 
 use Amana\Shared\Console\Commands\MigrateSharedCommand;
-use Amana\Shared\Contracts\NavBadgeProvider;
+use Amana\Shared\Http\ViewComposers\SidebarComposer;
 use Amana\Shared\Notifications\Channels\AmanaDatabaseChannel;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\View;
@@ -81,14 +81,10 @@ class AmanaSharedServiceProvider extends ServiceProvider
         // en cache par config:cache, qui ne peut pas porter de logique
         // dynamique). Résolu paresseusement à chaque rendu de la sidebar,
         // uniquement si une app a lié une implémentation — sinon $navBadges
-        // reste un tableau vide et aucun badge ne s'affiche.
-        View::composer('amana-shared::layouts.partials.sidebar', function ($view): void {
-            $navBadges = $this->app->bound(NavBadgeProvider::class)
-                ? $this->app->make(NavBadgeProvider::class)->counts()
-                : [];
-
-            $view->with('navBadges', $navBadges);
-        });
+        // reste un tableau vide et aucun badge ne s'affiche. La logique vit
+        // dans SidebarComposer (testable) ; c'est elle qui décide aussi si le
+        // rafraîchissement en direct est actif pour cette app.
+        View::composer('amana-shared::layouts.partials.sidebar', SidebarComposer::class);
 
         // ────────────────────────────────────────────────────────────────
         // Assets de marque (logo, favicons, icônes PWA) — identiques entre

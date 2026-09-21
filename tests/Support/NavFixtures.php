@@ -11,8 +11,13 @@ final class NavFixtures
     /** Identifiants pour lesquels l'extra_check répond « oui ». */
     public static array $affectes = [];
 
+    /** Nombre d'appels à estAffecte() (pour vérifier qu'il n'est pas lancé pour rien). */
+    public static int $appels = 0;
+
     public static function estAffecte(int $idPersonne, string $role): bool
     {
+        self::$appels++;
+
         return in_array($idPersonne, self::$affectes, true);
     }
 

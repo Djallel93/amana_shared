@@ -110,6 +110,29 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Badges de navigation en direct
+    |--------------------------------------------------------------------------
+    |
+    | Rafraîchissement des badges numériques de la sidebar sans recharger la
+    | page (voir README, « Badges de navigation en direct »). Actif seulement
+    | pour une app qui a lié Contracts\NavBadgeProvider ET enregistré la route
+    | ci-dessous ; sinon rien ne change et aucune requête n'est émise. Ces
+    | clés sont lues avec ces mêmes valeurs par défaut dans le code : une app
+    | dont config/amana-shared.php est ancien fonctionne sans les ajouter.
+    |
+    |   nav_badges_route         : nom de la route JSON enregistrée par l'app
+    |   nav_badges_poll_seconds  : intervalle entre deux interrogations (min. 15)
+    |   nav_badges_cache_seconds : durée de cache des compteurs, partagée entre
+    |                              utilisateurs (0 = pas de cache ; à mettre à 0
+    |                              si les compteurs dépendent de l'utilisateur)
+    |
+    */
+    'nav_badges_route' => 'nav-badges.index',
+    'nav_badges_poll_seconds' => 45,
+    'nav_badges_cache_seconds' => 10,
+
+    /*
+    |--------------------------------------------------------------------------
     | Thème couleur des emails (resources/views/emails/partials/_head.blade.php)
     |--------------------------------------------------------------------------
     |

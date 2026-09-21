@@ -74,15 +74,23 @@ class NavVisibility
      * Tous les items de navigation (hors titres de section) visibles pour
      * cet utilisateur, indexés par nom de route.
      *
+     * $only restreint l'évaluation à ces noms de route : l'extra_check d'un
+     * item peut interroger la base, inutile de le lancer pour un item dont
+     * on n'a de toute façon aucun compteur à renvoyer.
+     *
      * @param  array<int, array<string, mixed>>  $nav
+     * @param  string[]|null                     $only
      * @return array<string, array<string, mixed>>
      */
-    public function visibleByRoute(array $nav, ?Authenticatable $user): array
+    public function visibleByRoute(array $nav, ?Authenticatable $user, ?array $only = null): array
     {
         $visibles = [];
 
         foreach ($nav as $item) {
             if (isset($item['section']) || empty($item['route'])) {
+                continue;
+            }
+            if ($only !== null && ! in_array($item['route'], $only, true)) {
                 continue;
             }
             if ($this->isVisible($item, $user)) {

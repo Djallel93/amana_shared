@@ -289,6 +289,56 @@ provider) — ils ne touchent que la base de données par défaut de l'app.
   `resources/views/layouts/partials/{head,sidebar,flash}.blade.php`
   (remplacés par les inclusions `amana-shared::...`).
 
+## Badges de navigation en direct
+
+Les badges numériques de la sidebar (ex. « 3 » sur *Candidatures*) sont fournis par
+l'app via `Contracts\NavBadgeProvider`. Depuis la v2.5.0 ils se **rafraîchissent
+tout seuls** (sans recharger la page, et après une navigation Inertia), à deux
+conditions cumulées — sinon l'app se comporte exactement comme avant, sans script
+ni requête supplémentaire :
+
+1. l'app a lié `NavBadgeProvider` ;
+2. l'app a enregistré la route ci-dessous (le package n'enregistre **aucune** route).
+
+```php
+// routes/web.php — sous le middleware d'authentification de l'app
+use Amana\Shared\Http\Controllers\NavBadgesController;
+
+Route::get('/nav-badges', NavBadgesController::class)
+    ->name('nav-badges.index')          // nom lu via config('amana-shared.nav_badges_route')
+    ->middleware(['auth', 'throttle:60,1']);
+```
+
+**Ce que renvoie la route** : `{ "<nom de route>": <entier> }`, uniquement pour les items
+que la sidebar montrerait à l'utilisateur connecté (même service `Services\NavVisibility`
+que la sidebar : jamais de compteur d'un item masqué) et pour lesquels le fournisseur
+renvoie un compteur.
+
+**Réglages** (clés de premier niveau de `config/amana-shared.php`, avec les mêmes valeurs par
+défaut dans le code — un ancien fichier publié fonctionne sans les ajouter) :
+
+| Clé | Défaut | Rôle |
+| --- | --- | --- |
+| `nav_badges_route` | `nav-badges.index` | nom de la route enregistrée par l'app |
+| `nav_badges_poll_seconds` | `45` | intervalle entre deux interrogations (plancher : 15) |
+| `nav_badges_cache_seconds` | `10` | cache des compteurs, **partagé entre utilisateurs** ; `0` = aucun. À mettre à `0` si les compteurs de votre fournisseur dépendent de l'utilisateur connecté |
+
+**Coût** : intervalle × utilisateurs simultanés × coût d'un appel. Un appel = lecture de session
+(+ écriture, selon le driver) + lecture du cache ; les `COUNT(*)` du fournisseur ne sont
+exécutés qu'une fois par fenêtre de cache et par app. Ex. : 15 utilisateurs à 45 s ≈ 0,33 req/s.
+
+**Comportement du script** (`layouts/partials/nav-badges-script.blade.php`) : onglet masqué →
+aucune requête, rafraîchissement immédiat au retour ; jamais deux requêtes en vol ; en cas
+d'échec, les dernières valeurs restent affichées ; réponse 401/403/419 ou redirection vers la connexion (session expirée) → il cesse d'interroger ;
+un rafraîchissement à chaque événement `inertia:navigate`.
+
+**Marquage** : chaque item est rendu par `layouts/partials/nav-item.blade.php`. Quand le
+rafraîchissement est actif, le badge est toujours présent (masqué à 0) avec
+`data-nav-badge="<nom de route>"`.
+
+> ⚠️ Une app qui a publié `resources/views/vendor/amana-shared/…` ne reçoit **pas** ces vues :
+> republier ou reporter la modification à la main.
+
 ## Géographie partagée : Ville / Secteur / Quartier
 
 Déplacées depuis `amana_web_familles` le 21/07/2026 : bien que seule

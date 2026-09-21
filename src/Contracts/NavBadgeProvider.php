@@ -15,8 +15,14 @@ namespace Amana\Shared\Contracts;
  *
  * Binding optionnel : si aucune implémentation n'est liée dans le conteneur,
  * la sidebar n'affiche simplement aucun badge (voir
- * AmanaSharedServiceProvider::boot() — le View::composer résout ce contrat
- * avec un défaut vide via `app()->bound()`).
+ * Http\ViewComposers\SidebarComposer — résout ce contrat avec un défaut vide
+ * via `app()->bound()`).
+ *
+ * Rafraîchissement en direct : si l'app enregistre aussi la route vers
+ * Http\Controllers\NavBadgesController (voir README), ces compteurs sont
+ * ré-interrogés périodiquement. Ils sont alors mis en cache quelques secondes
+ * et PARTAGÉS entre utilisateurs (config 'nav_badges_cache_seconds') : si vos
+ * compteurs dépendent de l'utilisateur connecté, mettez cette valeur à 0.
  *
  * Chaque app lie son implémentation dans son propre AppServiceProvider :
  *   $this->app->bind(NavBadgeProvider::class, NavBadges::class);
