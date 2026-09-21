@@ -136,82 +136,22 @@ simplement pas.
                 amana_shared_ui/MobileSidebar.vue, qui répond à un besoin
                 différent). --}}
                 @php
-                    $navSections = [];
-                    $sectionCourante = null;
-                    foreach (config('amana-shared.nav', []) as $item) {
-                        if (isset($item['section'])) {
-                            $sectionCourante = $item['section'];
-                            $navSections[$sectionCourante] ??= [];
-                        } elseif ($sectionCourante !== null) {
-                            $navSections[$sectionCourante][] = $item;
-                        } else {
-                            // Entrée sans section précédente (ne devrait pas arriver
-                            // avec la config actuelle) — regroupée à part pour ne
-                            // perdre aucun lien plutôt que de la faire disparaître.
-                            $navSections[''][] = $item;
-                        }
-                    }
+                    // Regroupement par section et règles de visibilité : voir
+                    // Services\NavVisibility (partagées avec le point de
+                    // terminaison des badges, pour qu'il ne renvoie jamais un
+                    // compteur que cette sidebar masquerait).
+                    $navVisibility = app(\Amana\Shared\Services\NavVisibility::class);
+                    $navSections = $navVisibility->sections(config('amana-shared.nav', []));
                 @endphp
                 @foreach($navSections as $section => $items)
-                    @php
-                        $itemsVisibles = collect($items)->filter(function ($item) {
-                            if (empty($item['role']))
-                                return true;
-                            $utilisateur = auth()->user();
-                            if (!$utilisateur)
-                                return false;
-
-                            // Codes de la hiérarchie interne (voir docblock
-                            // plus haut) : uniquement hasAtLeastRole(), pour
-                            // ne jamais élargir un lien 'admin' à un simple
-                            // gestionnaire.
-                            if (in_array($item['role'], ['membre', 'gestionnaire', 'admin', 'benevole'], true)) {
-                                return $utilisateur->hasAtLeastRole($item['role']);
-                            }
-
-                            // Code de rôle applicatif quelconque (ex:
-                            // equipe_pesee) : visible pour qui détient
-                            // spécifiquement ce rôle, OU pour gestionnaire/
-                            // admin — reflète le pattern déjà utilisé par ces
-                            // apps (voir amana_web_familles::EnsureLivraisonRole,
-                            // "un admin ou un gestionnaire passe toujours").
-                            // Ajouté le 05/09/2026 : sans ce deuxième volet,
-                            // un compte gestionnaire (qui A accès à ces pages
-                            // via le middleware) ne voyait jamais leur lien de
-                            // sidebar, seul un compte equipe_* pur le voyait.
-                            if ($utilisateur->hasRole($item['role']) || $utilisateur->hasAtLeastRole('gestionnaire')) {
-                                return true;
-                            }
-
-                            // 'extra_check' optionnel (08/09/2026, voir
-                            // docblock plus haut) : un accès accordé par un
-                            // mécanisme propre à l'app, ni la hiérarchie
-                            // interne ni Personne::hasRole() — ce paquet ne
-                            // sait pas ce que ce callable vérifie, il se
-                            // contente de l'appeler.
-                            if (!empty($item['extra_check']) && is_callable($item['extra_check'])) {
-                                return (bool) call_user_func($item['extra_check'], $utilisateur->id, $item['role']);
-                            }
-
-                            return false;
-                        });
-                    @endphp
+                    @php $itemsVisibles = $navVisibility->filter($items, auth()->user()); @endphp
                     @continue($itemsVisibles->isEmpty())
                     @if($section === '')
                         @foreach($itemsVisibles as $item)
-                            @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
-                            <a href="{{ route($item['route']) }}"
-                                class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
-                                                                        {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
-                                onclick="closeSidebar()">
-                                <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
-                                <span class="flex-1">{{ $item['label'] }}</span>
-                                @if($navBadge > 0)
-                                    <span
-                                        class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
-                                        aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
-                                @endif
-                            </a>
+                            @include('amana-shared::layouts.partials.nav-item', [
+                                'item' => $item,
+                                'navBadge' => ($navBadges ?? [])[$item['route']] ?? 0,
+                            ])
                         @endforeach
                     @else
                         <details class="group mt-3 first:mt-0" open>
@@ -222,19 +162,10 @@ simplement pas.
                                     class="text-white/20 text-[9px] transition-transform duration-200 group-open:rotate-180">▾</span>
                             </summary>
                             @foreach($itemsVisibles as $item)
-                                @php $navBadge = ($navBadges ?? [])[$item['route']] ?? 0; @endphp
-                                <a href="{{ route($item['route']) }}"
-                                    class="relative flex items-center gap-2.5 px-3 py-2 rounded-sm text-[13px] font-medium transition-colors mb-px no-underline
-                                                                            {{ request()->routeIs($item['route_pattern'] ?? $item['route']) ? 'nav-item-active bg-accent/15 text-white font-semibold' : 'text-white hover:bg-white/[0.06] hover:text-white/75' }}"
-                                    onclick="closeSidebar()">
-                                    <span class="text-sm w-[18px] text-center flex-shrink-0">{{ $item['icon'] ?? '•' }}</span>
-                                    <span class="flex-1">{{ $item['label'] }}</span>
-                                    @if($navBadge > 0)
-                                        <span
-                                            class="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold leading-none bg-rose-500 text-white"
-                                            aria-label="{{ $navBadge }} en attente">{{ $navBadge > 99 ? '99+' : $navBadge }}</span>
-                                    @endif
-                                </a>
+                                @include('amana-shared::layouts.partials.nav-item', [
+                                    'item' => $item,
+                                    'navBadge' => ($navBadges ?? [])[$item['route']] ?? 0,
+                                ])
                             @endforeach
                         </details>
                     @endif
