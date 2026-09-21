@@ -258,6 +258,20 @@ class Personne extends Model implements
         return "hsl({$teinte}, 55%, 30%)";
     }
 
+    /**
+     * Email de réinitialisation de mot de passe (broker 'personnes') : version
+     * française habillée AMANA (Notifications\ResetPasswordNotification) à la
+     * place de l'email par défaut de Laravel. Une app qui surcharge cette
+     * méthode dans son propre modèle garde la main.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $url = route('password.reset', ['token' => $token, 'email' => $this->getEmailForPasswordReset()]);
+        $minutes = (int) config('auth.passwords.personnes.expire', 60);
+
+        $this->notify(new \Amana\Shared\Notifications\ResetPasswordNotification((string) $this->prenom, $url, $minutes));
+    }
+
     public function routeNotificationForMail(): string
     {
         return $this->email;

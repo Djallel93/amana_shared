@@ -433,7 +433,13 @@ $statut = $notifier->sendResetLink($personne); // route admin-only, throttle:5,1
 
 Le `AuthController` partagé envoie déjà la notice à la fin de `resetPassword` (contexte `creation` si le compte
 n'avait pas de mot de passe, sinon `reinitialisation`) : rien à faire côté app qui l'utilise. Une app qui a son propre
-flux (ex. planning) appelle `passwordChanged()` elle-même. Une app non mise à jour garde son comportement actuel.
+flux (ex. planning) appelle `passwordChanged()` elle-même. **Email de réinitialisation** (« Mot de passe oublié » et action admin « Envoyer un lien de réinitialisation ») :
+`Personne::sendPasswordResetNotification()` envoie `Notifications\ResetPasswordNotification` — français, habillé
+AMANA (gabarit `emails/compte.blade.php`), à la place de l'email anglais par défaut de Laravel. Aucun changement
+côté app ; une app qui surcharge cette méthode dans son modèle garde la main. Les emails d'invitation propres aux
+apps (candidature validée, accès attribué) ne sont pas concernés.
+
+Une app non mise à jour garde son comportement actuel.
 
 ## Géographie partagée : Ville / Secteur / Quartier
 
