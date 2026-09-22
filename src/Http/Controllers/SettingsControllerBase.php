@@ -37,6 +37,16 @@ use Illuminate\View\View;
  *       protected function adminOnlyKeys(): array { return ['inscription_ouverte']; }
  *       public function index(): View { ... vue et regroupement propres à l'app ... }
  *   }
+ *
+ * index() n'est PAS typé ici volontairement (voir plus bas) : une app
+ * peut aussi bien surcharger avec `: View` (rendu Blade classique, comme
+ * amana_web_planning) qu'avec `: \Inertia\Response` (amana_web_familles,
+ * section E4 du refactor, 22/09/2026) — PHP exige qu'un type de retour
+ * surchargé soit un sous-type de celui du parent, et `Inertia\Response`
+ * n'a aucune relation avec `Illuminate\View\View`, donc les deux ne
+ * peuvent pas cohabiter sous un type de retour commun sans faire de ce
+ * package une dépendance dure d'inertia/inertia-laravel (que
+ * amana_web_planning n'utilise pas).
  */
 abstract class SettingsControllerBase extends Controller
 {
@@ -57,8 +67,17 @@ abstract class SettingsControllerBase extends Controller
         return [];
     }
 
-    /** Vue générique — surchargez dans l'app pour un rendu sur mesure. */
-    public function index(): View
+    /**
+     * Vue générique — surchargez dans l'app pour un rendu sur mesure.
+     *
+     * Pas de type de retour déclaré ici (voir le docblock de la classe) :
+     * ce socle lui-même renvoie une View, mais une app fille doit pouvoir
+     * surcharger avec `: \Inertia\Response` sans violer la covariance des
+     * types de retour de PHP.
+     *
+     * @return View
+     */
+    public function index()
     {
         $settings = Setting::allForApp($this->appCode());
 
