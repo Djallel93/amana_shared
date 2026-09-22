@@ -48,15 +48,20 @@ simplement pas.
      l'app a enregistré la route (config 'profile_route' ; voir SidebarComposer::$profileUrl) et qu'un
      utilisateur est connecté. Sinon : ancien logo, aucun lien vers le profil, aucune erreur. --}}
 @php
-    $profilCourant = (! empty($profileUrl ?? null) && auth()->user() instanceof \Amana\Shared\Models\Personne)
+    $profilCourant = (!empty($profileUrl ?? null) && auth()->user() instanceof \Amana\Shared\Models\Personne)
         ? auth()->user()
         : null;
     $profilActif = $profilCourant && request()->routeIs('profile.*');
 @endphp
 
-{{-- ── Mobile topbar ── --}}
-<div
-    class="sm:hidden fixed top-0 left-0 right-0 h-topbar bg-sidebar z-[300] flex items-center justify-between px-4 border-b border-white/[0.06]">
+{{-- ── Mobile topbar ──
+     id="mobileTopbar" : ciblé par MobileSidebar.vue (@amana/shared-ui) pour le
+     masquer pendant que la sidebar est ouverte sur mobile — les deux étaient
+     jusqu'ici visibles en même temps (topbar en z-[300], au-dessus de la
+     sidebar en z-[200]), ce qui la faisait rester visible par-dessus la
+     sidebar ouverte. Désormais mutuellement exclusifs : voir applyDom(). --}}
+<div id="mobileTopbar"
+    class="sm:hidden fixed top-0 left-0 right-0 h-topbar bg-sidebar z-[300] flex items-center justify-between px-4 border-b border-white/[0.06] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]">
     @if($profilCourant)
         {{-- Pastille d'initiales → « Mon profil » ; le nom de l'app reste le lien vers l'accueil. --}}
         <div class="flex items-center gap-1 min-w-0">
@@ -68,13 +73,13 @@ simplement pas.
                 class="font-heading text-[15px] font-semibold text-white no-underline truncate min-h-[44px] flex items-center">{{ config('amana-shared.branding.app_name') }}</a>
         </div>
     @else
-    <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-2.5 no-underline">
-        <span class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 inline-block">
-            <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
-        </span>
-        <span
-            class="font-heading text-[15px] font-semibold text-white">{{ config('amana-shared.branding.app_name') }}</span>
-    </a>
+        <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-2.5 no-underline">
+            <span class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 inline-block">
+                <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
+            </span>
+            <span
+                class="font-heading text-[15px] font-semibold text-white">{{ config('amana-shared.branding.app_name') }}</span>
+        </a>
     @endif
     <button id="hamburgerBtn"
         class="flex flex-col gap-[5px] items-center justify-center w-10 h-10 rounded-md text-white/70 hover:bg-white/10 hover:text-white/75 transition-colors"
@@ -112,18 +117,18 @@ simplement pas.
                 </a>
             </div>
         @else
-        <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-[11px] no-underline">
-            <span
-                class="w-[38px] h-[38px] rounded-full overflow-hidden flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block">
-                <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
-            </span>
-            <div class="flex flex-col">
+            <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-[11px] no-underline">
                 <span
-                    class="font-heading text-[16px] font-semibold text-white leading-none tracking-[0.2px]">AMANA</span>
-                <span
-                    class="text-[10px] text-white/35 tracking-widest uppercase font-medium mt-0.5">{{ config('amana-shared.branding.tagline_short', '') }}</span>
-            </div>
-        </a>
+                    class="w-[38px] h-[38px] rounded-full overflow-hidden flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block">
+                    <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
+                </span>
+                <div class="flex flex-col">
+                    <span
+                        class="font-heading text-[16px] font-semibold text-white leading-none tracking-[0.2px]">AMANA</span>
+                    <span
+                        class="text-[10px] text-white/35 tracking-widest uppercase font-medium mt-0.5">{{ config('amana-shared.branding.tagline_short', '') }}</span>
+                </div>
+            </a>
         @endif
     </div>
 
@@ -183,7 +188,7 @@ simplement pas.
                     // Rafraîchissement en direct des badges : actif seulement si
                     // le composer a fourni une URL (fournisseur lié + route
                     // enregistrée + utilisateur connecté).
-                    $navBadgesLive = ! empty($navBadgesUrl ?? null);
+                    $navBadgesLive = !empty($navBadgesUrl ?? null);
                 @endphp
                 @foreach($navSections as $section => $items)
                     @php $itemsVisibles = $navVisibility->filter($items, auth()->user()); @endphp
@@ -217,42 +222,37 @@ simplement pas.
 
     </div>
 
-    {{-- Footer utilisateur (uniquement pour une personne connectée) --}}
+    {{-- Footer utilisateur (uniquement pour une personne connectée) ──
+         Une seule rangée : déconnexion à gauche, thème à droite. Le nom/prénom
+         et le badge de rôle ne sont plus affichés ici (déjà visibles en haut
+         de la sidebar via le badge de rôle général, et redondants avec la
+         pastille de profil quand elle existe) — remplacés le 22/09/2026 par
+         cette rangée unique, plus sobre que les deux blocs empilés
+         précédents (rangée nom/thème + formulaire de déconnexion pleine
+         largeur en dessous). --}}
     @auth
         <div class="px-3.5 py-3.5 border-t border-white/[0.06]">
-            <div class="flex items-center gap-2.5 px-2.5 py-2 rounded-sm bg-white/[0.05]">
-                <div class="flex-1 min-w-0 overflow-hidden">
-                    <div class="text-[12.5px] text-white/80 font-semibold truncate">
-                        {{ auth()->user()->prenom ?? '' }} {{ auth()->user()->nom ?? '' }}
-                    </div>
-                    <div class="text-[11px] text-white/32 mt-px">
-                        @if(auth()->user()->isAdmin()) Administrateur
-                        @elseif(auth()->user()->isGestionnaire()) Gestionnaire
-                        @elseif(!method_exists(auth()->user(), 'isMembre') || auth()->user()->isMembre()) Membre
-                        @else Bénévole
-                        @endif
-                    </div>
-                </div>
+            <div class="flex items-center gap-2 px-2 py-2 rounded-sm bg-white/[0.05]">
+                <form action="{{ route('logout') }}" method="POST" class="flex-1 min-w-0">
+                    @csrf
+                    <button type="submit"
+                        class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/10 bg-white/[0.06] text-[13px] font-semibold text-white/80 cursor-pointer transition-colors hover:bg-rose-500/20 hover:border-rose-400/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+                        title="Déconnexion">
+                        <span aria-hidden="true">🚪</span>
+                        <span>Se déconnecter</span>
+                    </button>
+                </form>
                 <button type="button" onclick="toggleAppTheme()" title="Changer le thème"
-                    class="text-white/30 hover:text-accent-light text-base p-1 rounded transition-colors bg-transparent border-0 cursor-pointer leading-none flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center">
+                    aria-label="Changer le thème"
+                    class="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm border border-white/10 bg-white/[0.06] text-white/70 text-base cursor-pointer transition-colors hover:bg-accent-light/15 hover:border-accent-light/40 hover:text-accent-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
                     <span data-theme-icon>🌙</span>
                 </button>
             </div>
-            {{-- Déconnexion : bouton visible et libellé (l'ancienne petite icône ↪ à 30 % d'opacité passait
-                 inaperçue). POST + CSRF, cible tactile ≥ 44 px, contraste réel, états hover/focus nets. --}}
-            <form action="{{ route('logout') }}" method="POST" class="mt-2.5">
-                @csrf
-                <button type="submit"
-                    class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/20 bg-white/[0.06] text-[13px] font-semibold text-white/90 cursor-pointer transition-colors hover:bg-rose-500/25 hover:border-rose-400/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300">
-                    <span aria-hidden="true">🚪</span>
-                    <span>Se déconnecter</span>
-                </button>
-            </form>
         </div>
     @endauth
 
 </aside>
 
-@if(! empty($navBadgesUrl ?? null))
+@if(!empty($navBadgesUrl ?? null))
     @include('amana-shared::layouts.partials.nav-badges-script')
 @endif
