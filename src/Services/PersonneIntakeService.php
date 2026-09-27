@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Amana\Shared\Services;
 
+use Amana\Shared\Support\PhoneFr;
+
 /**
  * Bloc "informations personnelles" commun à tous les formulaires publics
  * AMANA qui collectent nom/prénom/téléphone/email/langue (intake familles,
@@ -44,12 +46,16 @@ class PersonneIntakeService
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['required', 'string', 'max:100'],
             'email' => $regleEmail,
-            // Même regex que les formulaires existants (IntakeController,
-            // amana_web_familles) — accepte espaces/points/tirets/parenthèses.
-            // $telephoneMax=30 par défaut, comme les formulaires publics
-            // existants (les admins internes utilisent parfois max:20 pour
-            // des saisies plus courtes — passer une valeur différente si besoin).
-            'telephone' => ['required', 'string', "max:{$telephoneMax}", 'regex:/^[0-9+\s().-]{6,}$/'],
+            // Format unique désormais partagé par toute l'app AMANA — voir
+            // Amana\Shared\Support\PhoneFr (déjà utilisée par « Mon profil »
+            // et par les formulaires admin de planning). Remplace l'ancienne
+            // expression locale à ce service, plus permissive et incohérente
+            // avec les autres formulaires (acceptait par ex. un numéro sans
+            // indicatif ni 0 initial). $telephoneMax=30 par défaut, comme les
+            // formulaires publics existants (les admins internes utilisent
+            // parfois max:20 pour des saisies plus courtes — passer une
+            // valeur différente si besoin).
+            'telephone' => ['required', 'string', "max:{$telephoneMax}", 'regex:' . PhoneFr::REGEX],
             'langue' => ['required', 'string', 'in:fr,ar,en'],
         ];
     }

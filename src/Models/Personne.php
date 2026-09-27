@@ -62,6 +62,43 @@ class Personne extends Model implements
         return config('amana-shared.connection', 'commun');
     }
 
+    // ── Normalisation nom/prénom ────────────────────────────────────────────
+    //
+    // Appliquée via mutateurs Eloquent : déclenchée sur TOUT chemin d'écriture
+    // (create(), fill(), update()) dans TOUTES les apps AMANA consommant ce
+    // modèle partagé — inscription publique planning, CRUD admin planning,
+    // intake familles via PersonneIntakeService — sans dupliquer la logique
+    // dans chaque app. Les valeurs déjà en base avant l'ajout de ces
+    // mutateurs ne sont PAS rétroactivement corrigées (pas de backfill).
+
+    public function setNomAttribute(?string $value): void
+    {
+        $this->attributes['nom'] = $value !== null ? mb_strtoupper(trim($value), 'UTF-8') : $value;
+    }
+
+    public function setPrenomAttribute(?string $value): void
+    {
+        $this->attributes['prenom'] = $value !== null ? self::capitaliserPrenom(trim($value)) : $value;
+    }
+
+    /**
+     * Casse standard sur chaque suite de lettres — espace, tiret ET
+     * apostrophe servent tous de séparateur (non capturés par \p{L}, donc
+     * exclus des suites traitées) : « jean-pierre » → « Jean-Pierre »,
+     * « o'brien » → « O'Brien », « MARIE claire » → « Marie Claire »,
+     * « élodie » → « Élodie » (multi-octets via mb_*). Aucune gestion
+     * particulière des particules (de, van...) — non demandé.
+     */
+    private static function capitaliserPrenom(string $value): string
+    {
+        return preg_replace_callback(
+            '/\p{L}+/u',
+            fn(array $m) => mb_strtoupper(mb_substr($m[0], 0, 1, 'UTF-8'), 'UTF-8')
+                . mb_strtolower(mb_substr($m[0], 1, null, 'UTF-8'), 'UTF-8'),
+            $value
+        );
+    }
+
     // ── Relations ─────────────────────────────────────────────────────────
 
     public function roles(): BelongsToMany
