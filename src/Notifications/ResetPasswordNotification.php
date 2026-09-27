@@ -44,6 +44,8 @@ class ResetPasswordNotification extends CompteNotification
                 'Une demande de réinitialisation du mot de passe de votre compte AMANA a été effectuée '
                 . '(par vous ou par un administrateur). Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.',
                 'Un seul compte et un seul mot de passe servent pour toutes les applications AMANA.',
+                'Si vous avez reçu plusieurs emails de réinitialisation, seul le lien du dernier est valide : '
+                . 'les précédents cessent de fonctionner dès qu\'un nouveau est demandé.',
             ],
             'ctaUrl' => $this->url,
             'ctaLabel' => '🔑  Choisir un nouveau mot de passe',
