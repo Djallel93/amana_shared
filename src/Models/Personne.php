@@ -101,6 +101,7 @@ class Personne extends Model implements
 
     // ── Relations ─────────────────────────────────────────────────────────
 
+    /** @return BelongsToMany<Role, $this> */
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'ref_personnes_roles', 'id_personne', 'id_role')

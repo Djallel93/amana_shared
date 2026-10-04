@@ -35,6 +35,7 @@ class Ville extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return HasMany<Secteur, $this> */
     public function secteurs(): HasMany
     {
         return $this->hasMany(Secteur::class, 'id_ville');

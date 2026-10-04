@@ -41,6 +41,7 @@ class Quartier extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return BelongsTo<Secteur, $this> */
     public function secteur(): BelongsTo
     {
         return $this->belongsTo(Secteur::class, 'id_secteur');

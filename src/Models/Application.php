@@ -34,6 +34,7 @@ class Application extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return HasMany<Role, $this> */
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class, 'id_application');

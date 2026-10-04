@@ -26,11 +26,13 @@ class Secteur extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return BelongsTo<Ville, $this> */
     public function ville(): BelongsTo
     {
         return $this->belongsTo(Ville::class, 'id_ville');
     }
 
+    /** @return HasMany<Quartier, $this> */
     public function quartiers(): HasMany
     {
         return $this->hasMany(Quartier::class, 'id_secteur');

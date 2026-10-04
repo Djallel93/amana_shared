@@ -61,6 +61,7 @@ class Setting extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return BelongsTo<Application, $this> */
     public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class, 'id_application');

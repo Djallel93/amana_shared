@@ -54,16 +54,19 @@ class BenevoleProfil extends Model
         return config('amana-shared.connection', 'commun');
     }
 
+    /** @return BelongsTo<Personne, $this> */
     public function personne(): BelongsTo
     {
         return $this->belongsTo(Personne::class, 'id_personne');
     }
 
+    /** @return BelongsTo<VehiculeType, $this> */
     public function vehiculeType(): BelongsTo
     {
         return $this->belongsTo(VehiculeType::class, 'id_vehicule_type');
     }
 
+    /** @return BelongsToMany<Secteur, $this> */
     public function secteurs(): BelongsToMany
     {
         return $this->belongsToMany(Secteur::class, 'benevole_secteurs', 'id_benevole_profil', 'id_secteur');
