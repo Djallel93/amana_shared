@@ -18,6 +18,6 @@ le lien qui l'englobe qui porte le libellé accessible.
     $taille = (int) ($size ?? 38);
 @endphp
 <span
-    class="inline-flex items-center justify-center rounded-full flex-shrink-0 select-none text-white font-bold leading-none ring-2 {{ ($actif ?? false) ? 'ring-accent-light' : 'ring-white/25' }}"
+    class="inline-flex items-center justify-center rounded-full shrink-0 select-none text-white font-bold leading-none ring-2 {{ ($actif ?? false) ? 'ring-accent-light' : 'ring-white/25' }}"
     style="width:{{ $taille }}px;height:{{ $taille }}px;font-size:{{ max(11, (int) round($taille * 0.38)) }}px;background-color:{{ $personne->couleur_avatar }}"
     aria-hidden="true">{{ $personne->initiales }}</span>

@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <div class="w-full sm:w-[480px] bg-surface flex items-center justify-center px-6 py-10 sm:px-14 flex-shrink-0">
+    <div class="w-full sm:w-[480px] bg-surface flex items-center justify-center px-6 py-10 sm:px-14 shrink-0">
         <div class="w-full max-w-sm">
 
             <div class="flex sm:hidden items-center gap-3 mb-8">
@@ -47,7 +47,7 @@
                     <label for="email" class="block text-xs font-bold text-ink mb-1.5 tracking-[0.2px]">Adresse
                         email</label>
                     <input type="email" id="email" name="email" value="{{ old('email', $email) }}" autocomplete="email"
-                        autofocus class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-none transition
+                        autofocus class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-hidden transition
                                 focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_rgba(3,105,161,0.2)]
                                 hover:border-ink-muted">
                     @error('email')<span class="block text-xs text-rose-600 mt-1">{{ $message }}</span>@enderror
@@ -58,7 +58,7 @@
                         de passe</label>
                     <div class="relative">
                         <input type="password" id="password" name="password" oninput="checkStrength(this.value)"
-                            autocomplete="new-password" placeholder="Au moins 8 caractères" required class="w-full px-3.5 py-2.5 pr-11 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-none transition
+                            autocomplete="new-password" placeholder="Au moins 8 caractères" required class="w-full px-3.5 py-2.5 pr-11 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-hidden transition
                                     focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_rgba(3,105,161,0.2)]
                                     hover:border-ink-muted">
                         <button type="button" onclick="toggleVisibility('password', this)"
@@ -82,7 +82,7 @@
                         passe</label>
                     <div class="relative">
                         <input type="password" id="password_confirmation" name="password_confirmation"
-                            autocomplete="new-password" placeholder="Répétez le mot de passe" required class="w-full px-3.5 py-2.5 pr-11 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-none transition
+                            autocomplete="new-password" placeholder="Répétez le mot de passe" required class="w-full px-3.5 py-2.5 pr-11 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-hidden transition
                                     focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_rgba(3,105,161,0.2)]
                                     hover:border-ink-muted">
                         <button type="button" onclick="toggleVisibility('password_confirmation', this)"

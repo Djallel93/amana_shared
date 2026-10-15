@@ -39,7 +39,7 @@ toute nouvelle app.
                             <p class="text-xs text-ink-muted mt-0.5">{{ $data['description'] }}</p>
                         @endif
                     </div>
-                    <div class="flex-shrink-0 {{ $data['type'] === 'encrypted' ? 'w-full' : 'w-56' }}">
+                    <div class="shrink-0 {{ $data['type'] === 'encrypted' ? 'w-full' : 'w-56' }}">
                         @if($data['type'] === 'boolean')
                             <select id="setting-{{ $cle }}" name="settings[{{ $cle }}]"
                                 class="w-full px-3 py-2 border-[1.5px] border-ink-faint rounded-lg text-sm bg-surface-2 text-ink">

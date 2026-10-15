@@ -7,6 +7,18 @@ UI commune (layout + sidebar).
 Package privé — voir `docs/architecture.md` du dépôt principal pour le
 contexte complet de cette architecture.
 
+## Tailwind CSS 4 (v3.0.0+)
+
+**À partir du tag `v3.0.0`, les vues Blade exigent Tailwind CSS 4** (≥ 4.3) dans
+l'app hôte, avec `@amana/shared-ui` ≥ `v2.0.0`. Les classes utilisent la
+syntaxe v4 (`shrink-0`, `outline-hidden`, `max-w-(--breakpoint-xl)`…) ; elles
+ne sont pas toutes valides en Tailwind 3. Pour rester sur Tailwind 3, épingler
+`amana/shared` à `2.8.0`. L'app doit scanner ces vues avec
+`@source "../../vendor/amana/shared/resources/views";` dans son `app.css`.
+Navigateurs minimum : Safari 16.4, Chrome 111, Firefox 128.
+
+`tests/Unit/TailwindClassesTest.php` refuse les utilitaires supprimés en v4.
+
 ## Pièges connus
 
 **Héritage de connexion sur les relations hasMany/hasOne.** Si un modèle

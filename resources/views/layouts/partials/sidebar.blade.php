@@ -66,7 +66,7 @@ simplement pas.
         {{-- Pastille d'initiales → « Mon profil » ; le nom de l'app reste le lien vers l'accueil. --}}
         <div class="flex items-center gap-1 min-w-0">
             <a href="{{ $profileUrl }}" aria-label="Mon profil" @if($profilActif) aria-current="page" @endif
-                class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
+                class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
                 @include('amana-shared::layouts.partials.avatar', ['personne' => $profilCourant, 'size' => 32, 'actif' => $profilActif])
             </a>
             <a href="{{ route(config('amana-shared.home_route')) }}"
@@ -74,7 +74,7 @@ simplement pas.
         </div>
     @else
         <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-2.5 no-underline">
-            <span class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 inline-block">
+            <span class="w-8 h-8 rounded-full overflow-hidden shrink-0 inline-block">
                 <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
             </span>
             <span
@@ -106,7 +106,7 @@ simplement pas.
             {{-- Deux liens : pastille → « Mon profil », texte → accueil. --}}
             <div class="flex items-center gap-[8px]">
                 <a href="{{ $profileUrl }}" aria-label="Mon profil" @if($profilActif) aria-current="page" @endif
-                    class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline flex-shrink-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
+                    class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full no-underline shrink-0 focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
                     @include('amana-shared::layouts.partials.avatar', ['personne' => $profilCourant, 'size' => 38, 'actif' => $profilActif])
                 </a>
                 <a href="{{ route(config('amana-shared.home_route')) }}" class="flex flex-col no-underline min-w-0">
@@ -119,7 +119,7 @@ simplement pas.
         @else
             <a href="{{ route(config('amana-shared.home_route')) }}" class="flex items-center gap-[11px] no-underline">
                 <span
-                    class="w-[38px] h-[38px] rounded-full overflow-hidden flex-shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block">
+                    class="w-[38px] h-[38px] rounded-full overflow-hidden shrink-0 shadow-[0_4px_12px_rgba(0,0,0,0.3)] inline-block">
                     <img src="{{ asset('favicon-96x96.png') }}" alt="AMANA" class="w-full h-full object-cover scale-90">
                 </span>
                 <div class="flex flex-col">
@@ -236,7 +236,7 @@ simplement pas.
                 <form action="{{ route('logout') }}" method="POST" class="flex-1 min-w-0">
                     @csrf
                     <button type="submit"
-                        class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/10 bg-white/[0.06] text-[13px] font-semibold text-white/80 cursor-pointer transition-colors hover:bg-rose-500/20 hover:border-rose-400/40 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+                        class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/10 bg-white/[0.06] text-[13px] font-semibold text-white/80 cursor-pointer transition-colors hover:bg-rose-500/20 hover:border-rose-400/40 hover:text-white focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
                         title="Déconnexion">
                         <span aria-hidden="true">🚪</span>
                         <span>Se déconnecter</span>
@@ -244,7 +244,7 @@ simplement pas.
                 </form>
                 <button type="button" onclick="toggleAppTheme()" title="Changer le thème"
                     aria-label="Changer le thème"
-                    class="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm border border-white/10 bg-white/[0.06] text-white/70 text-base cursor-pointer transition-colors hover:bg-accent-light/15 hover:border-accent-light/40 hover:text-accent-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
+                    class="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm border border-white/10 bg-white/[0.06] text-white/70 text-base cursor-pointer transition-colors hover:bg-accent-light/15 hover:border-accent-light/40 hover:text-accent-light focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">
                     <span data-theme-icon>🌙</span>
                 </button>
             </div>

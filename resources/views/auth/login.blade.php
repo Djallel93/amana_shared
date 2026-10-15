@@ -34,7 +34,7 @@
             <div class="mt-9 flex flex-col gap-3 text-left">
                 @foreach(config('amana-shared.branding.features') as [$icon, $label])
                 <div class="flex items-center gap-3 text-white/60 text-[13.5px]">
-                    <div class="w-8 h-8 bg-white/[0.07] rounded-lg flex items-center justify-center text-sm flex-shrink-0">{{ $icon }}</div>
+                    <div class="w-8 h-8 bg-white/[0.07] rounded-lg flex items-center justify-center text-sm shrink-0">{{ $icon }}</div>
                     <span>{{ $label }}</span>
                 </div>
                 @endforeach
@@ -44,7 +44,7 @@
     </div>
 
     {{-- Panneau droit --}}
-    <div class="w-full sm:w-[480px] bg-surface flex items-center justify-center px-6 py-10 sm:px-14 flex-shrink-0">
+    <div class="w-full sm:w-[480px] bg-surface flex items-center justify-center px-6 py-10 sm:px-14 shrink-0">
         <div class="w-full max-w-sm">
 
             <div class="flex sm:hidden items-center gap-3 mb-8">
@@ -73,7 +73,7 @@
                     <label for="email" class="block text-xs font-bold text-ink mb-1.5 tracking-[0.2px]">Adresse email</label>
                     <input type="email" id="email" name="email" value="{{ old('email') }}"
                         autocomplete="email" autofocus placeholder="votre@email.fr"
-                        class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-none transition
+                        class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-hidden transition
                                 focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_rgba(3,105,161,0.2)]
                                 hover:border-ink-muted">
                     @error('email')<span class="block text-xs text-rose-600 mt-1">{{ $message }}</span>@enderror
@@ -83,7 +83,7 @@
                     <label for="password" class="block text-xs font-bold text-ink mb-1.5 tracking-[0.2px]">Mot de passe</label>
                     <input type="password" id="password" name="password"
                         autocomplete="current-password" placeholder="••••••••"
-                        class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-none transition
+                        class="w-full px-3.5 py-2.5 border-[1.5px] border-ink-faint rounded-lg text-base font-body text-ink bg-surface-2 outline-hidden transition
                                 focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_rgba(3,105,161,0.2)]
                                 hover:border-ink-muted">
                     @error('password')<span class="block text-xs text-rose-600 mt-1">{{ $message }}</span>@enderror

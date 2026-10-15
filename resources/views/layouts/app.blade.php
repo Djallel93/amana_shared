@@ -27,7 +27,7 @@ surcharger les sections 'scripts-extra' ou publier cette vue.
     {{-- ── Contenu principal ── --}}
     <div id="mainWrapper"
         class="flex-1 flex flex-col min-w-0 ml-sidebar transition-all duration-300 max-sm:ml-0 max-sm:pt-topbar">
-        <main class="flex-1 p-8 max-w-screen-xl w-full mx-auto max-lg:p-7 max-sm:px-4 max-sm:py-5">
+        <main class="flex-1 p-8 max-w-(--breakpoint-xl) w-full mx-auto max-lg:p-7 max-sm:px-4 max-sm:py-5">
 
             @include('amana-shared::layouts.partials.flash')
 
