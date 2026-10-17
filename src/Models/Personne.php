@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Amana\Shared\Models;
 
+use Amana\Shared\Support\PhoneFr;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
@@ -254,6 +255,15 @@ class Personne extends Model implements
     public function getNomCompletAttribute(): string
     {
         return $this->prenom . ' ' . strtoupper($this->nom);
+    }
+
+    /**
+     * Téléphone à l'affichage, « +33 1 23 45 67 89 » (17/10/2026) — voir PhoneFr::formater() : un numéro
+     * non français est renvoyé tel quel. La colonne `telephone` reste la valeur saisie.
+     */
+    public function getTelephoneFormateAttribute(): ?string
+    {
+        return PhoneFr::formater($this->telephone);
     }
 
     /**
