@@ -394,6 +394,18 @@ régénéré, session régénérée, email de notification, audit sans secret.
 **Clés de config** (premier niveau, avec ces défauts dans le code) : `profile_route` (`profile.edit`),
 `profile_email_dns` (`true` : contrôle DNS `email:rfc,dns` ; `false` = RFC seulement).
 
+### Guide d'utilisation et déconnexion (sidebar)
+
+Le footer de la sidebar est une rangée : **Se déconnecter**, puis (opt-in) le bouton ❓ **Guide d'utilisation**,
+puis la bascule de thème. Le bouton n'apparaît que si l'app enregistre la route nommée dans la clé de config
+`guide_route` (défaut `guide.index`) et qu'un utilisateur est connecté : sans elle, aucun bouton ni erreur.
+Le contenu du guide est propre à chaque app (contrôleur Inertia + page Vue) ; le squelette — sommaire collant,
+sections, accordéons — vient de `@amana/shared-ui` (`GuidePage`, `GuideSection`, `GuideItem`). Le filtrage par
+rôle se fait côté serveur : une section non autorisée n'est jamais envoyée.
+
+« Se déconnecter » demande d'abord une confirmation **Oui / Non** (attributs `data-confirm*` interceptés par
+`registerConfirmForms()` de `@amana/shared-ui` ≥ la version qui lit `data-confirm-cancel-label`).
+
 **Téléphone** : `Support\PhoneFr` (regex + message définis une fois). Il accepte en plus un espace après
 `+33`/`0033` : l'expression du formulaire admin de planning refuse son propre exemple « +33 6 12 34 56 78 ».
 

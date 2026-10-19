@@ -223,7 +223,8 @@ simplement pas.
     </div>
 
     {{-- Footer utilisateur (uniquement pour une personne connectée) ──
-         Une seule rangée : déconnexion à gauche, thème à droite. Le nom/prénom
+         Une seule rangée : déconnexion à gauche, puis (18/10/2026) le guide
+         d'utilisation (opt-in, voir config 'guide_route') et le thème à droite. Le nom/prénom
          et le badge de rôle ne sont plus affichés ici (déjà visibles en haut
          de la sidebar via le badge de rôle général, et redondants avec la
          pastille de profil quand elle existe) — remplacés le 22/09/2026 par
@@ -232,16 +233,31 @@ simplement pas.
          largeur en dessous). --}}
     @auth
         <div class="px-3.5 py-3.5 border-t border-white/[0.06]">
-            <div class="flex items-center gap-2 px-2 py-2 rounded-sm bg-white/[0.05]">
-                <form action="{{ route('logout') }}" method="POST" class="flex-1 min-w-0">
+            <div class="flex items-center gap-1.5 px-1.5 py-2 rounded-sm bg-white/[0.05]">
+                {{-- Confirmation Oui/Non avant de se déconnecter : intercepté par registerConfirmForms()
+                     (@amana/shared-ui, attribut data-confirm) — sans JS, le formulaire part tel quel. --}}
+                <form action="{{ route('logout') }}" method="POST" class="flex-1 min-w-0"
+                    data-confirm="Voulez-vous vraiment vous déconnecter ?" data-confirm-title="Déconnexion"
+                    data-confirm-label="Oui" data-confirm-cancel-label="Non">
                     @csrf
                     <button type="submit"
-                        class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 rounded-sm border border-white/10 bg-white/[0.06] text-[13px] font-semibold text-white/80 cursor-pointer transition-colors hover:bg-rose-500/20 hover:border-rose-400/40 hover:text-white focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
+                        class="w-full min-h-[44px] flex items-center justify-center gap-2 px-2 whitespace-nowrap rounded-sm border border-white/10 bg-white/[0.06] text-[13px] font-semibold text-white/80 cursor-pointer transition-colors hover:bg-rose-500/20 hover:border-rose-400/40 hover:text-white focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300"
                         title="Déconnexion">
-                        <span aria-hidden="true">🚪</span>
+                        {{-- Avec le bouton guide, la rangée est trop étroite (sidebar ≥ 252 px) pour l'emoji : libellé seul. --}}
+                        @if(empty($guideUrl ?? null))
+                            <span aria-hidden="true">🚪</span>
+                        @endif
                         <span>Se déconnecter</span>
                     </button>
                 </form>
+                @if(!empty($guideUrl ?? null))
+                    @php($guideActif = request()->routeIs('guide.*'))
+                    <a href="{{ $guideUrl }}" title="Guide d'utilisation" aria-label="Guide d'utilisation"
+                        @if($guideActif) aria-current="page" @endif
+                        class="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm border text-base no-underline transition-colors focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light {{ $guideActif ? 'border-accent-light/40 bg-accent-light/15 text-accent-light' : 'border-white/10 bg-white/[0.06] text-white/70 hover:bg-accent-light/15 hover:border-accent-light/40 hover:text-accent-light' }}">
+                        <span aria-hidden="true">❓</span>
+                    </a>
+                @endif
                 <button type="button" onclick="toggleAppTheme()" title="Changer le thème"
                     aria-label="Changer le thème"
                     class="shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-sm border border-white/10 bg-white/[0.06] text-white/70 text-base cursor-pointer transition-colors hover:bg-accent-light/15 hover:border-accent-light/40 hover:text-accent-light focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-light">

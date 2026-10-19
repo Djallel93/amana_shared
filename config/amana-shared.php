@@ -152,6 +152,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Guide d'utilisation
+    |--------------------------------------------------------------------------
+    |
+    | Même principe opt-in que le profil (18/10/2026) : la sidebar affiche le
+    | bouton ❓ « Guide d'utilisation » (entre « Se déconnecter » et la bascule
+    | de thème) SEULEMENT si l'app a enregistré cette route. Le contenu du
+    | guide est propre à chaque app ; le squelette (sommaire, sections,
+    | accordéons) vient de @amana/shared-ui (GuidePage, GuideSection,
+    | GuideItem).
+    |
+    |   guide_route : nom de la route d'affichage (GET) du guide
+    |
+    */
+    'guide_route' => 'guide.index',
+
+    /*
+    |--------------------------------------------------------------------------
     | Thème couleur des emails (resources/views/emails/partials/_head.blade.php)
     |--------------------------------------------------------------------------
     |

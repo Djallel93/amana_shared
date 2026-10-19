@@ -30,6 +30,12 @@ use Illuminate\Routing\Router;
  *                   utilisateur (Personne) est connecté ET que l'app a
  *                   enregistré la route (config 'profile_route', défaut
  *                   'profile.edit') ; sinon la sidebar garde l'ancien logo.
+ *
+ * Bouton « Guide d'utilisation » (18/10/2026) :
+ *   - $guideUrl : URL du guide, ou null. Non null SEULEMENT si un utilisateur
+ *                 est connecté ET que l'app a enregistré la route (config
+ *                 'guide_route', défaut 'guide.index') ; sinon le footer de la
+ *                 sidebar n'affiche aucun bouton, sans erreur.
  */
 class SidebarComposer
 {
@@ -53,8 +59,12 @@ class SidebarComposer
         $nomProfil = (string) config('amana-shared.profile_route', 'profile.edit');
         $profil = auth()->user() instanceof Personne && $this->router->has($nomProfil);
 
+        $nomGuide = (string) config('amana-shared.guide_route', 'guide.index');
+        $guide = $connecte && $this->router->has($nomGuide);
+
         $view->with('navBadges', $navBadges)
             ->with('profileUrl', $profil ? route($nomProfil) : null)
+            ->with('guideUrl', $guide ? route($nomGuide) : null)
             ->with('navBadgesUrl', $vue ? route($nomRoute) : null)
             ->with('navBadgesPollSeconds', max(15, (int) config('amana-shared.nav_badges_poll_seconds', 45)));
     }
