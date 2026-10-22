@@ -40,14 +40,14 @@ use Illuminate\Support\Facades\DB;
 class VehiculeTypesSeeder extends Seeder
 {
     private const VEHICULES = [
-        ['id' => 1, 'type' => 'Citadine', 'capacite_kg' => 150, 'nombre_part_max' => 6],
-        ['id' => 2, 'type' => 'Berline', 'capacite_kg' => 250, 'nombre_part_max' => 8],
-        ['id' => 3, 'type' => 'Break', 'capacite_kg' => 300, 'nombre_part_max' => 15],
-        ['id' => 4, 'type' => 'Monospace', 'capacite_kg' => 400, 'nombre_part_max' => 20],
-        ['id' => 5, 'type' => 'Fourgon moyen', 'capacite_kg' => 700, 'nombre_part_max' => 30],
-        ['id' => 6, 'type' => 'Grand fourgon', 'capacite_kg' => 1000, 'nombre_part_max' => 50],
-        ['id' => 7, 'type' => 'Non véhiculé', 'capacite_kg' => 0, 'nombre_part_max' => 0],
-        ['id' => 8, 'type' => 'Sans permis', 'capacite_kg' => 0, 'nombre_part_max' => 0],
+        ['id' => 1, 'type' => 'Citadine', 'capacite_kg' => 150, 'nombre_part_max' => 6, 'actif' => true],
+        ['id' => 2, 'type' => 'Berline', 'capacite_kg' => 250, 'nombre_part_max' => 8, 'actif' => true],
+        ['id' => 3, 'type' => 'Break', 'capacite_kg' => 300, 'nombre_part_max' => 15, 'actif' => true],
+        ['id' => 4, 'type' => 'Monospace', 'capacite_kg' => 400, 'nombre_part_max' => 20, 'actif' => true],
+        ['id' => 5, 'type' => 'Fourgon moyen', 'capacite_kg' => 700, 'nombre_part_max' => 30, 'actif' => true],
+        ['id' => 6, 'type' => 'Grand fourgon', 'capacite_kg' => 1000, 'nombre_part_max' => 50, 'actif' => true],
+        ['id' => 7, 'type' => 'Non véhiculé', 'capacite_kg' => 0, 'nombre_part_max' => 0, 'actif' => true],
+        ['id' => 8, 'type' => 'Sans permis', 'capacite_kg' => 0, 'nombre_part_max' => 0, 'actif' => true],
     ];
 
     public function run(): void
@@ -57,6 +57,8 @@ class VehiculeTypesSeeder extends Seeder
         $connection->table('ref_vehicules')->upsert(
             self::VEHICULES,
             ['id'],
+            // 'actif' volontairement absent : un reseed ne doit pas
+            // réactiver un type que le staff a désactivé.
             ['type', 'capacite_kg', 'nombre_part_max'],
         );
     }

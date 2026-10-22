@@ -35,6 +35,13 @@ return new class extends Migration {
             $table->string('type', 50);
             $table->decimal('capacite_kg', 6, 2)->default(0);
             $table->unsignedSmallInteger('nombre_part_max')->default(0);
+            // Désactivation douce (octobre 2026) : un type ne se supprime
+            // jamais (FK benevole_profils.id_vehicule_type en RESTRICT,
+            // routes et disponibilités y font aussi référence) — il est
+            // masqué des choix proposés (formulaire public, pickers) mais
+            // reste lisible pour l'historique. Voir VehiculeType::IDS_PROTEGES
+            // pour les lignes que le staff ne peut pas désactiver.
+            $table->boolean('actif')->default(true);
         });
     }
 
