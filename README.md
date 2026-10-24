@@ -116,6 +116,13 @@ Voir `docs/local-development.md` de chaque app pour le détail complet
 (y compris le pendant côté npm via `npm link`, qui ne nécessite aucune
 configuration supplémentaire puisque `node_modules/` est déjà gitignoré).
 
+## Layout : place réservée à la cloche de notifications
+
+La cloche (`NotificationBell`, `@amana/shared-ui`) est en `position: fixed` dans le coin supérieur
+droit : elle recouvre tout ce qui s'y trouve. Le layout réserve donc la place avec un
+`padding-top: 3.75rem` (`pt-15`) sur `<main>` — fait dans `layouts/app.blade.php`. Toute app qui
+écrit son propre shell doit faire pareil. Détails et pièges : `docs/notification-bell-layout.md`.
+
 Authentification : le dépôt étant privé, Composer a besoin d'un token.
 Voir `docs/composer-auth.md` (local : `composer config --global
 github-oauth.github.com <token>` ou `auth.json` non commité ; CI : secret

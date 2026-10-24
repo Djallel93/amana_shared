@@ -27,7 +27,8 @@ surcharger les sections 'scripts-extra' ou publier cette vue.
     {{-- ── Contenu principal ── --}}
     <div id="mainWrapper"
         class="flex-1 flex flex-col min-w-0 ml-sidebar transition-all duration-300 max-sm:ml-0 max-sm:pt-topbar">
-        <main class="flex-1 p-8 max-w-(--breakpoint-xl) w-full mx-auto max-lg:p-7 max-sm:px-4 max-sm:py-5">
+        {{-- pt-15 (3.75rem) : place réservée à la cloche de notifications (fixed, coin supérieur droit) — voir amana_shared/docs/notification-bell-layout.md --}}
+        <main class="flex-1 px-8 pb-8 pt-15 max-w-(--breakpoint-xl) w-full mx-auto max-lg:px-7 max-lg:pb-7 max-sm:px-4 max-sm:pb-5">
 
             @include('amana-shared::layouts.partials.flash')
 
